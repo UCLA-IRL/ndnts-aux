@@ -1,0 +1,24 @@
+{
+  "tasks": {
+  },
+  "unstable": ["byonm", "net", "fs"],
+  "compilerOptions": {
+    "types": [
+      "@types/wicg-file-system-access"
+    ]
+  },
+  "fmt": {
+    "lineWidth": 120,
+    "singleQuote": true,
+    "indentWidth": 2,
+    "useTabs": false,
+    "semiColons": true,
+    "include": ["src/**", "build.ts"]
+  },
+  "lint": {
+    "include": ["src/**", "build.ts"]
+  },
+  "test": {
+    "exclude": ["dist/"]
+  }
+}

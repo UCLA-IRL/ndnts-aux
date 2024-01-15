@@ -1,0 +1,61 @@
+{
+  "name": "@ucla-irl/ndnts-aux",
+  "version": "1.0.0",
+  "description": "NDNts Auxiliary Package for Web and Deno",
+  "scripts": {
+    "test": "deno test",
+    "format": "deno fmt",
+    "lint": "deno lint",
+    "build": "deno run -A ./build.ts"
+  },
+  "keywords": [
+    "NDN",
+    "Named Data Networking"
+  ],
+  "author": "Xinyu Ma <ma.xinyu.26a@kyoto-u.jp>",
+  "license": "ISC",
+  "repository": "https://github.com/UCLA-IRL/ndnts-aux.git",
+  "bugs": {
+    "url": "https://github.com/UCLA-IRL/ndnts-aux/issues"
+  },
+  "dependencies": {
+    "eventemitter3": "^5.0.1",
+    "jose": "^5.2.0",
+    "tslib": "^2.6.2",
+    "uuid": "^9.0.1",
+    "yjs": "^13.6.10"
+  },
+  "devDependencies": {
+    "@ndn/endpoint": "https://ndnts-nightly.ndn.today/endpoint.tgz",
+    "@ndn/fw": "https://ndnts-nightly.ndn.today/fw.tgz",
+    "@ndn/keychain": "https://ndnts-nightly.ndn.today/keychain.tgz",
+    "@ndn/naming-convention2": "https://ndnts-nightly.ndn.today/naming-convention2.tgz",
+    "@ndn/ndncert": "https://ndnts-nightly.ndn.today/ndncert.tgz",
+    "@ndn/ndnsec": "https://ndnts-nightly.ndn.today/ndnsec.tgz",
+    "@ndn/nfdmgmt": "https://ndnts-nightly.ndn.today/nfdmgmt.tgz",
+    "@ndn/node-transport": "https://ndnts-nightly.ndn.today/node-transport.tgz",
+    "@ndn/packet": "https://ndnts-nightly.ndn.today/packet.tgz",
+    "@ndn/segmented-object": "https://ndnts-nightly.ndn.today/segmented-object.tgz",
+    "@ndn/sync": "https://ndnts-nightly.ndn.today/sync.tgz",
+    "@ndn/tlv": "https://ndnts-nightly.ndn.today/tlv.tgz",
+    "@ndn/util": "https://ndnts-nightly.ndn.today/util.tgz",
+    "@ndn/ws-transport": "https://ndnts-nightly.ndn.today/ws-transport.tgz",
+    "@types/wicg-file-system-access": "^2023.10.4"
+  },
+  "peerDependencies": {
+    "@ndn/endpoint": "https://ndnts-nightly.ndn.today/endpoint.tgz",
+    "@ndn/fw": "https://ndnts-nightly.ndn.today/fw.tgz",
+    "@ndn/keychain": "https://ndnts-nightly.ndn.today/keychain.tgz",
+    "@ndn/naming-convention2": "https://ndnts-nightly.ndn.today/naming-convention2.tgz",
+    "@ndn/ndncert": "https://ndnts-nightly.ndn.today/ndncert.tgz",
+    "@ndn/ndnsec": "https://ndnts-nightly.ndn.today/ndnsec.tgz",
+    "@ndn/nfdmgmt": "https://ndnts-nightly.ndn.today/nfdmgmt.tgz",
+    "@ndn/node-transport": "https://ndnts-nightly.ndn.today/node-transport.tgz",
+    "@ndn/packet": "https://ndnts-nightly.ndn.today/packet.tgz",
+    "@ndn/segmented-object": "https://ndnts-nightly.ndn.today/segmented-object.tgz",
+    "@ndn/sync": "https://ndnts-nightly.ndn.today/sync.tgz",
+    "@ndn/tlv": "https://ndnts-nightly.ndn.today/tlv.tgz",
+    "@ndn/util": "https://ndnts-nightly.ndn.today/util.tgz",
+    "@ndn/ws-transport": "https://ndnts-nightly.ndn.today/ws-transport.tgz"
+  }
+}
