@@ -10,35 +10,35 @@ if (import.meta.main) {
     entryPoints: [
       './src/mod.ts',
       {
-        name: './src/adaptors',
+        name: './adaptors',
         path: './src/adaptors/mod.ts',
       },
       {
-        name: './src/namespace',
+        name: './namespace',
         path: './src/namespace/mod.ts',
       },
       {
-        name: './src/nfd-mgmt',
+        name: './nfd-mgmt',
         path: './src/nfd-mgmt/mod.ts',
       },
       {
-        name: './src/security',
+        name: './security',
         path: './src/security/mod.ts',
       },
       {
-        name: './src/storage',
+        name: './storage',
         path: './src/storage/mod.ts',
       },
       {
-        name: './src/sync-agent',
+        name: './sync-agent',
         path: './src/sync-agent/mod.ts',
       },
       {
-        name: './src/utils',
+        name: './utils',
         path: './src/utils/mod.ts',
       },
       {
-        name: './src/workspace',
+        name: './workspace',
         path: './src/workspace/mod.ts',
       },
     ],
@@ -57,6 +57,7 @@ if (import.meta.main) {
       // steps to run after building and before running the tests
       Deno.copyFileSync('LICENSE', `${OUTPUT_DIR}/LICENSE`);
       Deno.copyFileSync('README.md', `${OUTPUT_DIR}/README.md`);
+      Deno.copyFileSync('.npmrc', `${OUTPUT_DIR}/.npmrc`);
     },
   });
 }
