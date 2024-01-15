@@ -44,8 +44,8 @@ if (import.meta.main) {
     ],
     outDir: OUTPUT_DIR,
     shims: {
-      // see JS docs for overview and more options
-      deno: true,
+      // Do not shim Deno. It conflicts with the browser.
+      deno: false,
     },
     test: false, // Required due to some dependencies do not include test files.
     esModule: true,
