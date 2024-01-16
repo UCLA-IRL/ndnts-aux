@@ -1,0 +1,50 @@
+name: Publish
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    # Pattern matched against refs/tags
+    tags:        
+      - 'v*'           # Push events to every tag not containing /
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Down scope as necessary via https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+permissions:
+  checks: write
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Publish NPM package
+    runs-on: ubuntu-latest
+    if: github.repository == 'UCLA-IRL/ndnts-aux'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 21
+          cache: "pnpm"
+      - name: Set up Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+      - name: Install dependencies
+        run: pnpm install
+      - name: DNT build
+        run: pnpm build
+      - name: Login
+        run: |
+          pnpm set registry "http://npm.pkg.github.com/"
+          pnpm set "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
+      - name: Publish
+        run:
+          cd dist && pnpm publish
