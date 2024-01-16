@@ -47,4 +47,4 @@ jobs:
           pnpm set "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
       - name: Publish
         run:
-          cd dist && pnpm publish
+          cd dist && pnpm publish --no-git-checks
