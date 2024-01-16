@@ -1,6 +1,6 @@
 {
   "name": "@ucla-irl/ndnts-aux",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "NDNts Auxiliary Package for Web and Deno",
   "scripts": {
     "test": "deno test",
@@ -43,19 +43,19 @@
     "@types/wicg-file-system-access": "^2023.10.4"
   },
   "peerDependencies": {
-    "@ndn/endpoint": "^0.0.0",
-    "@ndn/fw": "^0.0.0",
-    "@ndn/keychain": "^0.0.0",
-    "@ndn/naming-convention2": "^0.0.0",
-    "@ndn/ndncert": "^0.0.0",
-    "@ndn/ndnsec": "^0.0.0",
-    "@ndn/nfdmgmt": "^0.0.0",
-    "@ndn/node-transport": "^0.0.0",
-    "@ndn/packet": "^0.0.0",
-    "@ndn/segmented-object": "^0.0.0",
-    "@ndn/sync": "^0.0.0",
-    "@ndn/tlv": "^0.0.0",
-    "@ndn/util": "^0.0.0",
-    "@ndn/ws-transport": "^0.0.0"
+    "@ndn/endpoint": ">=0.0.0",
+    "@ndn/fw": ">=0.0.0",
+    "@ndn/keychain": ">=0.0.0",
+    "@ndn/naming-convention2": ">=0.0.0",
+    "@ndn/ndncert": ">=0.0.0",
+    "@ndn/ndnsec": ">=0.0.0",
+    "@ndn/nfdmgmt": ">=0.0.0",
+    "@ndn/node-transport": ">=0.0.0",
+    "@ndn/packet": ">=0.0.0",
+    "@ndn/segmented-object": ">=0.0.0",
+    "@ndn/sync": ">=0.0.0",
+    "@ndn/tlv": ">=0.0.0",
+    "@ndn/util": ">=0.0.0",
+    "@ndn/ws-transport": ">=0.0.0"
   }
 }
