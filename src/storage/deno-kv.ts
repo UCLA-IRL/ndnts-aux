@@ -2,7 +2,6 @@ import { Storage } from './types.ts';
 
 /**
  * A storage based on DenoKV.
- * Not actually included in the exported package. May need Custom Shims.
  */
 export class DenoKvStorage implements Storage {
   constructor(

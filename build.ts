@@ -46,6 +46,10 @@ if (import.meta.main) {
     shims: {
       // Do not shim Deno. It conflicts with the browser.
       deno: false,
+      custom: [{
+        module: './types/deno.d.ts',
+        globalNames: ['Deno'],
+      }],
     },
     test: false, // Required due to some dependencies do not include test files.
     esModule: true,
@@ -58,6 +62,8 @@ if (import.meta.main) {
       Deno.copyFileSync('LICENSE', `${OUTPUT_DIR}/LICENSE`);
       Deno.copyFileSync('README.md', `${OUTPUT_DIR}/README.md`);
       Deno.copyFileSync('.npmrc', `${OUTPUT_DIR}/.npmrc`);
+      Deno.writeFileSync(`${OUTPUT_DIR}/esm/_dnt.shims.js`, new Uint8Array());
+      Deno.writeFileSync(`${OUTPUT_DIR}/script/_dnt.shims.js`, new Uint8Array());
     },
   });
 }
