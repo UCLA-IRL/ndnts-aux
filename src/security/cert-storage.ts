@@ -3,13 +3,14 @@ import { Data, Interest, Name, Signer, Verifier } from '@ndn/packet';
 import { Certificate, createSigner, createVerifier, ECDSA } from '@ndn/keychain';
 import { Endpoint } from '@ndn/endpoint';
 import { Storage } from '../storage/mod.ts';
+import { SecurityAgent } from './types.ts';
 
 /**
  * A Signer & Verifier that handles security authentication.
  * CertStorage itself is not a storage, actually. Depend on an external storage.
  * Note: CertStorage will not serve the certificate.
  */
-export class CertStorage {
+export class CertStorage implements SecurityAgent {
   private _signer: Signer | undefined;
   readonly readyEvent: Promise<void>;
 
@@ -36,7 +37,7 @@ export class CertStorage {
 
   /** Obtain the signer */
   get signer() {
-    return this._signer;
+    return this._signer!;
   }
 
   /** Obtain this node's own certificate */
