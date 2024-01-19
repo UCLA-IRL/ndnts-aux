@@ -62,8 +62,9 @@ if (import.meta.main) {
       Deno.copyFileSync('LICENSE', `${OUTPUT_DIR}/LICENSE`);
       Deno.copyFileSync('README.md', `${OUTPUT_DIR}/README.md`);
       Deno.copyFileSync('.npmrc', `${OUTPUT_DIR}/.npmrc`);
-      Deno.writeFileSync(`${OUTPUT_DIR}/esm/_dnt.shims.js`, new Uint8Array());
-      Deno.writeFileSync(`${OUTPUT_DIR}/script/_dnt.shims.js`, new Uint8Array());
+      const dntShim = new TextEncoder().encode('const Deno = globalThis.Deno;\nexport { Deno };');
+      Deno.writeFileSync(`${OUTPUT_DIR}/esm/_dnt.shims.js`, dntShim);
+      Deno.writeFileSync(`${OUTPUT_DIR}/script/_dnt.shims.js`, dntShim);
     },
   });
 }
