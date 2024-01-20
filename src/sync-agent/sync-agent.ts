@@ -1,13 +1,13 @@
-import { Endpoint } from '@ndn/endpoint';
-import { Data, type Interest, Name, Signer, type Verifier } from '@ndn/packet';
-import { Decoder, Encoder } from '@ndn/tlv';
-import { DataProducer, fetch, makeChunkSource } from '@ndn/segmented-object';
-import { v4 as uuidv4 } from 'uuid';
-import { concatBuffers } from '@ndn/util';
+import { Endpoint } from 'npm:@ndn/endpoint';
+import { Data, type Interest, Name, Signer, type Verifier } from 'npm:@ndn/packet';
+import { Decoder, Encoder } from 'npm:@ndn/tlv';
+import { DataProducer, fetch, makeChunkSource } from 'npm:@ndn/segmented-object';
+import { v4 as uuidv4 } from 'npm:uuid';
+import { concatBuffers } from 'npm:@ndn/util';
 import { AtLeastOnceDelivery, LatestOnlyDelivery, UpdateEvent } from './deliveries.ts';
 import { getNamespace } from './namespace.ts';
 import { InMemoryStorage, Storage } from '../storage/mod.ts';
-import { SvStateVector } from '@ndn/sync';
+import { SvStateVector } from 'npm:@ndn/sync';
 import { panic } from '../utils/panic.ts';
 
 export type ChannelType = 'update' | 'blob' | 'status' | 'blobUpdate';

@@ -1,6 +1,6 @@
-import { Name } from '@ndn/packet';
-import { type Decodable, Decoder, type Encodable, Encoder, EvDecoder, NNI } from '@ndn/tlv';
-import { toUtf8 } from '@ndn/util';
+import { Name } from 'npm:@ndn/packet';
+import { type Decodable, Decoder, type Encodable, Encoder, EvDecoder, NNI } from 'npm:@ndn/tlv';
+import { toUtf8 } from 'npm:@ndn/util';
 
 export const decodeNNI = ({ nni }: Decoder.Tlv) => nni;
 export const decodeString = ({ text }: Decoder.Tlv) => text;

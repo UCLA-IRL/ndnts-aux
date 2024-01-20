@@ -1,4 +1,4 @@
-import { EventEmitter } from 'eventemitter3';
+import { EventEmitter } from 'npm:eventemitter3';
 
 interface UpdateEvents<T> {
   update(newValue: T, oldValue: T): void;

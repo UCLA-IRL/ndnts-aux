@@ -1,6 +1,6 @@
-import type { Name } from '@ndn/packet';
-import { fromUtf8, toUtf8 } from '@ndn/util';
-import { createRemoteJWKSet, jwtVerify } from 'jose';
+import type { Name } from 'npm:@ndn/packet';
+import { fromUtf8, toUtf8 } from 'npm:@ndn/util';
+import { createRemoteJWKSet, jwtVerify } from 'npm:jose';
 import type {
   ChallengeRequest,
   ClientChallenge,
@@ -8,8 +8,8 @@ import type {
   ServerChallenge,
   ServerChallengeContext,
   ServerChallengeResponse,
-} from '@ndn/ndncert';
-import { NamedVerifier } from '@ndn/keychain';
+} from 'npm:@ndn/ndncert';
+import { NamedVerifier } from 'npm:@ndn/keychain';
 
 export class ClientOidcChallenge implements ClientChallenge {
   constructor(

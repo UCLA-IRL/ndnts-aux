@@ -6,7 +6,7 @@ import {
   StringField,
   StructField,
 } from '../utils/field-descriptors.ts';
-import type { Decoder, Encoder } from '@ndn/tlv';
+import type { Decoder, Encoder } from 'npm:@ndn/tlv';
 
 /** NFD Management FaceStatus struct. */
 export class FaceStatus {

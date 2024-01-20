@@ -1,4 +1,4 @@
-import { CongestionAvoidance } from '@ndn/segmented-object';
+import { CongestionAvoidance } from 'npm:@ndn/segmented-object';
 
 export class LimitedCwnd extends CongestionAvoidance {
   constructor(

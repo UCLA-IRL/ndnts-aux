@@ -1,9 +1,9 @@
 import { Storage } from '../storage/mod.ts';
-import { Endpoint } from '@ndn/endpoint';
-import type { Name, Signer, Verifier } from '@ndn/packet';
+import { Endpoint } from 'npm:@ndn/endpoint';
+import type { Name, Signer, Verifier } from 'npm:@ndn/packet';
 import { encodeSyncState, parseSyncState, SyncAgent } from '../sync-agent/mod.ts';
 import { NdnSvsAdaptor, YjsStateManager } from '../adaptors/mod.ts';
-import * as Y from 'yjs';
+import * as Y from 'npm:yjs';
 
 export class Workspace {
   private constructor(

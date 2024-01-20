@@ -1,4 +1,4 @@
-import * as Y from 'yjs';
+import * as Y from 'npm:yjs';
 import { Storage } from '../storage/mod.ts';
 
 const StateKey = 'localState';

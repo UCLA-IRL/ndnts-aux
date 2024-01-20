@@ -1,4 +1,4 @@
-import { Name, TT } from '@ndn/packet';
+import { Name, TT } from 'npm:@ndn/packet';
 import {
   ArrayField,
   createEVDFromStruct,
@@ -7,7 +7,7 @@ import {
   NNIField,
   StructField,
 } from '../utils/field-descriptors.ts';
-import type { Decoder, Encoder } from '@ndn/tlv';
+import type { Decoder, Encoder } from 'npm:@ndn/tlv';
 
 /** NFD Management Route struct. */
 export class Route {

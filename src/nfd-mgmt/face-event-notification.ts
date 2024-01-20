@@ -1,5 +1,5 @@
 import { createEVDFromStruct, encodeStruct, NNIField, StringField, StructField } from '../utils/field-descriptors.ts';
-import type { Decoder, Encoder } from '@ndn/tlv';
+import type { Decoder, Encoder } from 'npm:@ndn/tlv';
 
 /** The TLV-value of NFD Management's FaceEventNotification. */
 export class FaceEventNotification {

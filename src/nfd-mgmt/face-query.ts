@@ -1,5 +1,5 @@
 import { createEVDFromStruct, encodeStruct, NNIField, StringField, StructField } from '../utils/field-descriptors.ts';
-import type { Decoder, Encoder } from '@ndn/tlv';
+import type { Decoder, Encoder } from 'npm:@ndn/tlv';
 
 /** NFD Management the TLV Value of FaceQueryFilter struct. */
 export class FaceQueryFilterValue {

@@ -1,7 +1,7 @@
-import { Decoder, Encoder } from '@ndn/tlv';
-import { Data, Interest, Name, Signer, Verifier } from '@ndn/packet';
-import { Certificate, createSigner, createVerifier, ECDSA } from '@ndn/keychain';
-import { Endpoint } from '@ndn/endpoint';
+import { Decoder, Encoder } from 'npm:@ndn/tlv';
+import { Data, Interest, Name, Signer, Verifier } from 'npm:@ndn/packet';
+import { Certificate, createSigner, createVerifier, ECDSA } from 'npm:@ndn/keychain';
+import { Endpoint } from 'npm:@ndn/endpoint';
 import { Storage } from '../storage/mod.ts';
 import { SecurityAgent } from './types.ts';
 

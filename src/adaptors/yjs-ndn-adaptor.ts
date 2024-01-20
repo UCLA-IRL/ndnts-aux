@@ -1,5 +1,5 @@
 import { SyncAgent } from '../sync-agent/mod.ts';
-import * as Y from 'yjs';
+import * as Y from 'npm:yjs';
 
 /**
  * NDN SVS Provider for Yjs. Wraps update into `SyncAgent`'s `update` channel.

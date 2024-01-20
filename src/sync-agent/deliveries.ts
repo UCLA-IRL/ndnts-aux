@@ -1,8 +1,8 @@
-import { type Endpoint } from '@ndn/endpoint';
-import { SvStateVector, SvSync, type SyncNode, type SyncUpdate } from '@ndn/sync';
-import { Data, digestSigning, Interest, Name, Signer, type Verifier } from '@ndn/packet';
-import { SequenceNum } from '@ndn/naming-convention2';
-import { Decoder, Encoder } from '@ndn/tlv';
+import { type Endpoint } from 'npm:@ndn/endpoint';
+import { SvStateVector, SvSync, type SyncNode, type SyncUpdate } from 'npm:@ndn/sync';
+import { Data, digestSigning, Interest, Name, Signer, type Verifier } from 'npm:@ndn/packet';
+import { SequenceNum } from 'npm:@ndn/naming-convention2';
+import { Decoder, Encoder } from 'npm:@ndn/tlv';
 import { getNamespace } from './namespace.ts';
 import { Storage } from '../storage/mod.ts';
 import { panic } from '../utils/panic.ts';

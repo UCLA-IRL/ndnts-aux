@@ -1,4 +1,4 @@
-import type { Decoder, Encoder } from '@ndn/tlv';
+import type { Decoder, Encoder } from 'npm:@ndn/tlv';
 import { createEVDFromStruct, encodeStruct, NNIField, StringField } from '../utils/field-descriptors.ts';
 
 /** NFD Management GeneralStatus struct. */
