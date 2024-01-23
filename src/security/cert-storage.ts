@@ -58,7 +58,7 @@ export class CertStorage implements SecurityAgent {
    */
   async getCertificate(keyName: Name, localOnly: boolean): Promise<Certificate | undefined> {
     const certBytes = await this.storage.get(keyName.toString());
-    if (certBytes === undefined) {
+    if (certBytes === undefined || certBytes.length === 0) { // Length 0 happens for parallel access reason
       if (localOnly) {
         return undefined;
       } else {

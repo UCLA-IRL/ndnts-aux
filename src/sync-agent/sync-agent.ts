@@ -237,7 +237,7 @@ export class SyncAgent {
   // Please make sure the blob's name does not conflict with internal packets' names
   public async publishBlob(topic: string, blobContent: Uint8Array, name?: Name, push = true) {
     // Put original content (SA getBlob())
-    if (name === undefined) {
+    if (name === undefined || name.length === 0) {
       name = getNamespace().genBlobName(this.appPrefix);
     }
     await this.persistStorage.set(name.toString(), blobContent);
@@ -298,7 +298,7 @@ export class SyncAgent {
       const key = intName.toString();
       wire = await this.persistStorage.get(key);
     }
-    if (wire === undefined) {
+    if (wire === undefined || wire.length === 0) {
       // console.warn(`A remote peer is fetching a non-existing object: ${intName.toString()}`);
       return undefined;
     }
