@@ -219,6 +219,8 @@ export class AtLeastOnceDelivery extends SyncDelivery {
   override async handleSyncUpdate(update: SyncUpdate<Name>) {
     const prefix = getNamespace().baseName(update.id, this.syncPrefix);
     let lastHandled = update.loSeqNum - 1;
+    // Modify NDNts's segmented object fetching pipeline to fetch sequences.
+    // See: https://github.com/zjkmxy/ndn-cc-v3/blob/2128cd8614d8116f7d9dfb17f86f71fbac258739/src/lib/backend/main.ts#L88-L106
     for (let i = update.loSeqNum; i <= update.hiSeqNum; i++) {
       const name = prefix.append(SequenceNum.create(i));
       try {

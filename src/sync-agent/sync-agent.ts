@@ -299,13 +299,13 @@ export class SyncAgent {
       wire = await this.persistStorage.get(key);
     }
     if (wire === undefined) {
-      console.warn(`A remote peer is fetching a non-existing object: ${intName.toString()}`);
+      // console.warn(`A remote peer is fetching a non-existing object: ${intName.toString()}`);
       return undefined;
     }
     try {
       const data = Decoder.decode(wire, Data);
       if (isLatestOnly && !data.name.equals(intName)) {
-        console.log(`A status with not existing version is requested: ${intName.toString()}`);
+        // console.log(`A status with not existing version is requested: ${intName.toString()}`);
         return undefined;
       }
       return data;

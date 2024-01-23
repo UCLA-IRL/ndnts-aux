@@ -75,10 +75,14 @@ export class Workspace {
     );
   }
 
+  public fireUpdate() {
+    this.syncAgent.fire();
+  }
+
   public destroy() {
     this.syncAgent.ready = false;
     this.yjsSnapshotMgr.destroy();
     this.syncAgent.destroy();
-    this.persistStore.close();
+    // persistStore is not created by workspace
   }
 }
