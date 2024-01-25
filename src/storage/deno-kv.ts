@@ -44,8 +44,11 @@ export class DenoKvStorage implements Storage {
     }
   }
 
-  close(): Promise<void> {
+  close() {
     this.kv.close();
-    return Promise.resolve();
+  }
+
+  [Symbol.dispose]() {
+    this.close();
   }
 }

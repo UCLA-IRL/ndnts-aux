@@ -6,3 +6,6 @@ export * from './limited-cwnd.ts';
 export * from './panic.ts';
 export * from './safety-guard.ts';
 export * from './signals.ts';
+export * from './name-lit.ts';
+export * from './disposable-stacks.ts';
+export * from './responder.ts';

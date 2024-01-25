@@ -1,5 +1,5 @@
 // SA: https://github.com/azu/kvs/blob/master/packages/types/src/index.ts
-export interface Storage {
+export interface Storage extends Disposable {
   /**
    * Look up the value associated to the key.
    * @param key The key to look up
@@ -37,5 +37,5 @@ export interface Storage {
   /**
    * Close the connection
    */
-  close(): Promise<void>;
+  close(): void;
 }

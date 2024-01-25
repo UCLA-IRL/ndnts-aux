@@ -32,7 +32,7 @@ const fireSvSync = (inst: SvSync) => {
  * SyncDelivery is a SVS Sync instance associated with a storage.
  * It handles update notification and production, but does not serve Data packets.
  */
-export abstract class SyncDelivery {
+export abstract class SyncDelivery implements AsyncDisposable {
   readonly baseName: Name;
   protected _syncInst?: SvSync;
   protected _syncNode?: SyncNode;
@@ -41,7 +41,9 @@ export abstract class SyncDelivery {
   protected _onUpdate?: UpdateEvent;
   private _startPromiseResolve?: () => void;
   protected _onReset?: () => void;
+  protected abortController: AbortController;
 
+  // TODO: Use options to configure parameters
   constructor(
     readonly nodeId: Name,
     readonly endpoint: Endpoint,
@@ -59,6 +61,7 @@ export abstract class SyncDelivery {
         resolve();
       }
     });
+    this.abortController = new AbortController();
 
     SvSync.create({
       endpoint: endpoint,
@@ -123,17 +126,23 @@ export abstract class SyncDelivery {
     }
   }
 
-  destroy(storage?: Storage) {
+  async destroy(storage?: Storage) {
     // Note: the abstract class does not know where is the storage to store SVS vector.
     // Derived classes will override this with `destroy()`
+    this._ready = false;
+    this.abortController.abort('SvsDelivery Destroyed');
     if (this._syncInst !== undefined) {
       this._syncInst.close();
       if (storage !== undefined) {
-        this.storeSyncState(storage);
+        await this.storeSyncState(storage);
       }
     } else {
       throw new Error('Current implementation does not support destroy before start.');
     }
+  }
+
+  async [Symbol.asyncDispose]() {
+    return await this.destroy();
   }
 
   public async reset() {
@@ -141,6 +150,8 @@ export abstract class SyncDelivery {
       throw new Error('Please do not reset before start.');
     }
     console.warn('A Sync reset is scheduled.');
+    this.abortController.abort('Reset');
+    this.abortController = new AbortController();
     this._syncInst.close();
     this._syncNode = undefined;
     const svSync = await SvSync.create({
@@ -218,6 +229,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
   }
 
   override async handleSyncUpdate(update: SyncUpdate<Name>) {
+    // TODO: URGENT: No guarantee this function is single entry. Separate delivery thread with the fetcher.
     const prefix = getNamespace().baseName(update.id, this.syncPrefix);
     let lastHandled = update.loSeqNum - 1;
     // Modify NDNts's segmented object fetching pipeline to fetch sequences.
@@ -229,6 +241,11 @@ export class AtLeastOnceDelivery extends SyncDelivery {
       lifetimeAfterRto: 1000, // The true timeout timer is the RTO
       ca: new TcpCubic(),
       verifier: this.verifier,
+      endpoint: this.endpoint,
+      // WARN: an abort controller is required! NDNts's fetcher cannot close itself even after
+      // the face is destroyed and there exists no way to send the Interest.
+      // deno-lint-ignore no-explicit-any
+      signal: this.abortController.signal as any,
     });
     try {
       for await (const data of continuation) {
@@ -251,6 +268,11 @@ export class AtLeastOnceDelivery extends SyncDelivery {
         lastHandled = i;
       }
     } catch (error) {
+      // If it is due to destroy, silently shutdown.
+      if (!this._ready) {
+        return;
+      }
+
       // TODO: Find a better way to handle this
       console.error(`Unable to fetch or verify ${prefix}:${lastHandled + 1} due to: `, error);
       console.warn('The current SVS protocol cannot recover from this error. A reset will be triggered');
@@ -290,7 +312,11 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     );
     await this.signer.sign(data);
 
-    this.storage.set(name.toString(), Encoder.encode(data));
+    // NOTE: There is actually a small chance that the system is broken, since it is not locked.
+    // However, I don't think it will happen in real life.
+    // The time for `await this.storage.set` to return should always be shorter than
+    // the time for the Agent to respond with this piece of Data
+    await this.storage.set(name.toString(), Encoder.encode(data));
 
     // Save my own state to prevent reuse the sync number
     if (this.state!.get(this.syncNode.id) < seqNum) {
@@ -317,8 +343,8 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     return new AtLeastOnceDelivery(nodeId, endpoint, syncPrefix, signer, verifier, storage, onUpdatePromise, syncState);
   }
 
-  override destroy() {
-    return super.destroy(this.storage);
+  override async destroy() {
+    return await super.destroy(this.storage);
   }
 
   async replay(startFrom: SvStateVector, callback: UpdateEvent) {
@@ -435,7 +461,7 @@ export class LatestOnlyDelivery extends SyncDelivery {
     );
   }
 
-  override destroy() {
-    return super.destroy(this.stateStorage);
+  override async destroy() {
+    return await super.destroy(this.stateStorage);
   }
 }

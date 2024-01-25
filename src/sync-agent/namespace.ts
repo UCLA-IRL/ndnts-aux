@@ -1,6 +1,5 @@
 import { type Component, Name } from '@ndn/packet';
 import { Keyword as KeywordComponent } from '@ndn/naming-convention2';
-import { v4 as uuidv4 } from 'uuid';
 
 let currentNamespace: SyncAgentNamespace | undefined = undefined;
 
@@ -40,7 +39,7 @@ export type SyncAgentNamespace = {
 
   /**
    * Generate the name of a blob object when the user does not provide a name for this blob
-   * Default is: genBlobName(/ndn-app) = /ndn-app/blob/${uuidv4()}
+   * Default is: genBlobName(/ndn-app) = /ndn-app/blob/${crypto.randomUUID()}
    * @param appPrefix the application prefix. e.g. /ndn-app
    */
   genBlobName(appPrefix: Name): Name;
@@ -97,7 +96,7 @@ function createDefaultNamespace(): SyncAgentNamespace {
       return '/8=local' + baseName.toString() + '/8=syncVector';
     },
     genBlobName(appPrefix: Name): Name {
-      return new Name([...appPrefix.comps, 'blob', uuidv4()]);
+      return new Name([...appPrefix.comps, 'blob', crypto.randomUUID()]);
     },
     syncKeyword: KeywordComponent.create('sync'),
     atLeastOnceKeyword: KeywordComponent.create('alo'),

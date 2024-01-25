@@ -68,5 +68,9 @@ export class FsStorage implements Storage {
     }
   }
 
-  async close(): Promise<void> {}
+  close() {}
+
+  [Symbol.dispose]() {
+    this.close();
+  }
 }

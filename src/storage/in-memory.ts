@@ -33,5 +33,9 @@ export class InMemoryStorage implements Storage {
     this.cache = {};
   }
 
-  async close() {}
+  close() {}
+
+  [Symbol.dispose]() {
+    this.close();
+  }
 }

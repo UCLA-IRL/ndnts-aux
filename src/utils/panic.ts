@@ -3,7 +3,7 @@ export function panic(message: string) {
   if (location) {
     // Runs in both the browser and deno, but the deno version will be blocking
     // So we do not use it.
-    window.alert(msgTest);
+    globalThis.alert(msgTest);
     // Only runs in the browser
     const rootUrl = `${location.protocol}//${location.host}/`;
     location.replace(rootUrl);

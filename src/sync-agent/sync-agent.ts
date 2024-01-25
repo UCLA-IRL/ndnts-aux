@@ -2,7 +2,6 @@ import { Endpoint } from '@ndn/endpoint';
 import { Data, type Interest, Name, Signer, type Verifier } from '@ndn/packet';
 import { Decoder, Encoder } from '@ndn/tlv';
 import { DataProducer, fetch, makeChunkSource } from '@ndn/segmented-object';
-import { v4 as uuidv4 } from 'uuid';
 import { concatBuffers } from '@ndn/util';
 import { AtLeastOnceDelivery, LatestOnlyDelivery, UpdateEvent } from './deliveries.ts';
 import { getNamespace } from './namespace.ts';
@@ -110,7 +109,7 @@ export class SyncAgent {
 
   private makeInnerData(channel: ChannelType, topic: string, content: Uint8Array) {
     const data = new Data(
-      new Name([channel, topic, uuidv4()]),
+      new Name([channel, topic, crypto.randomUUID()]),
       content,
     );
     return Encoder.encode(data);
