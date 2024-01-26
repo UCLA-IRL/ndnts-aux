@@ -41,7 +41,8 @@ export abstract class SyncDelivery implements AsyncDisposable {
   protected _onUpdate?: UpdateEvent;
   private _startPromiseResolve?: () => void;
   protected _onReset?: () => void;
-  protected abortController: AbortController;
+  protected _abortController: AbortController;
+  protected _lastTillNow: SvStateVector;
 
   // TODO: Use options to configure parameters
   constructor(
@@ -61,7 +62,8 @@ export abstract class SyncDelivery implements AsyncDisposable {
         resolve();
       }
     });
-    this.abortController = new AbortController();
+    this._abortController = new AbortController();
+    this._lastTillNow = new SvStateVector(this.state);
 
     SvSync.create({
       endpoint: endpoint,
@@ -130,7 +132,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
     // Note: the abstract class does not know where is the storage to store SVS vector.
     // Derived classes will override this with `destroy()`
     this._ready = false;
-    this.abortController.abort('SvsDelivery Destroyed');
+    this._abortController.abort('SvsDelivery Destroyed');
     if (this._syncInst !== undefined) {
       this._syncInst.close();
       if (storage !== undefined) {
@@ -150,8 +152,9 @@ export abstract class SyncDelivery implements AsyncDisposable {
       throw new Error('Please do not reset before start.');
     }
     console.warn('A Sync reset is scheduled.');
-    this.abortController.abort('Reset');
-    this.abortController = new AbortController();
+    this._abortController.abort('Reset');
+    this._abortController = new AbortController();
+    this._lastTillNow = new SvStateVector(this.state);
     this._syncInst.close();
     this._syncNode = undefined;
     const svSync = await SvSync.create({
@@ -212,7 +215,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
 }
 
 // At least once delivery (closer to exactly once). Used for Y.Doc updates and large blob.
-// This class does not handle segmentation.
+// This class does not handle segmentation and reordering.
 // Note: storage is not necessarily a real storage.
 export class AtLeastOnceDelivery extends SyncDelivery {
   constructor(
@@ -229,9 +232,10 @@ export class AtLeastOnceDelivery extends SyncDelivery {
   }
 
   override async handleSyncUpdate(update: SyncUpdate<Name>) {
-    // TODO: URGENT: No guarantee this function is single entry. Separate delivery thread with the fetcher.
+    // Note: No guarantee this function is single entry. Need to separate delivery thread with the fetcher.
+    // Updated: since it is hard to do so, I did a quick fix by dropping the ordering requirement.
+
     const prefix = getNamespace().baseName(update.id, this.syncPrefix);
-    let lastHandled = update.loSeqNum - 1;
     // Modify NDNts's segmented object fetching pipeline to fetch sequences.
     // fetchSegments is not supposed to be working with sequence numbers, but I can abuse the convention
     const continuation = fetchSegments(prefix, {
@@ -245,15 +249,12 @@ export class AtLeastOnceDelivery extends SyncDelivery {
       // WARN: an abort controller is required! NDNts's fetcher cannot close itself even after
       // the face is destroyed and there exists no way to send the Interest.
       // deno-lint-ignore no-explicit-any
-      signal: this.abortController.signal as any,
+      signal: this._abortController.signal as any,
     });
+    let lastHandled: number | undefined;
     try {
-      for await (const data of continuation) {
-        const i = data.name.get(data.name.length - 1)?.as(SequenceNum);
-        if (i !== lastHandled + 1) {
-          throw new Error(`[FATAL] sync update error: seq=${i} is processed before seq=${lastHandled + 1}`);
-        }
-
+      for await (const data of continuation.unordered()) {
+        lastHandled = data.name.get(data.name.length - 1)?.as(SequenceNum);
         // Put into storage
         // Note: even though endpoint.consume does not give me the raw Data packet,
         //       the encode result will be the same.
@@ -263,9 +264,6 @@ export class AtLeastOnceDelivery extends SyncDelivery {
         // AtLeastOnce is required to have the callback acknowledged
         // before writing the new SvStateVector into the storage
         await this._onUpdate!(data.content, update.id, this);
-
-        // Mark as persist
-        lastHandled = i;
       }
     } catch (error) {
       // If it is due to destroy, silently shutdown.
@@ -274,7 +272,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
       }
 
       // TODO: Find a better way to handle this
-      console.error(`Unable to fetch or verify ${prefix}:${lastHandled + 1} due to: `, error);
+      console.error(`Unable to fetch or verify ${prefix}:${lastHandled} due to: `, error);
       console.warn('The current SVS protocol cannot recover from this error. A reset will be triggered');
 
       this._syncInst?.close();
@@ -289,11 +287,34 @@ export class AtLeastOnceDelivery extends SyncDelivery {
       return;
     }
 
-    // Putting this out of the loop makes it not exactly once:
-    // If the application is down before all messages in the update is handled,
-    // some may be redelivered the next time the application starts.
-    // Sinc Yjs allows an update to be applied multiple times, this should be fine.
-    await this.setSyncState(update.id, lastHandled, this.storage);
+    // // Putting this out of the loop makes it not exactly once:
+    // // If the application is down before all messages in the update is handled,
+    // // some may be redelivered the next time the application starts.
+    // // Sinc Yjs allows an update to be applied multiple times, this should be fine.
+    // await this.setSyncState(update.id, lastHandled, this.storage);
+
+    // Updated: the original design contravened the AtLeastOnce guarantee due to gap and multi-entry of this function.
+    let lastSeen = this._lastTillNow.get(update.id);
+    if (lastSeen < update.hiSeqNum) {
+      this._lastTillNow.set(update.id, update.hiSeqNum);
+      lastSeen = update.hiSeqNum;
+    }
+    const front = this.syncState.get(update.id);
+    // We don't know if update is next to front. If there is a gap, we must not do anything.
+    if (update.loSeqNum > front + 1) {
+      return;
+    }
+    // Otherwise, we move to hiSeqNum first, and check if there is anything further.
+    let newSeq = update.hiSeqNum;
+    const updateBaseName = getNamespace().baseName(update.id, this.syncPrefix);
+    for (; newSeq < lastSeen; newSeq++) {
+      // This can be optimized with some data structure like C++ set, but not now.
+      const dataName = updateBaseName.append(SequenceNum.create(newSeq + 1));
+      if (!this.storage.has(dataName.toString())) {
+        break;
+      }
+    }
+    await this.setSyncState(update.id, newSeq, this.storage);
   }
 
   override async produce(content: Uint8Array) {
