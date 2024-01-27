@@ -4,6 +4,14 @@ import { Encoder, NNI } from '@ndn/tlv';
 /**
  * NDN Name generator for test. Allows to use tag literals to generate NDN name from boilerplate.
  * Designed for unit tests only. Do not use in production, as it is slow and not guaranteed to reflect the latest spec.
+ *
+ * @remarks
+ *
+ * 1. Alternative URI only works for templates, e.g. `` name`/aa/seg=${1}` ``.
+ * 2. Do not try to fool this function on purpuse. It is designed for test use only and
+ *    does not handle corner cases at all.
+ *    For example, `` name`/8=seg=${0}` ``.
+ *
  * @param templates Name boilerplate
  * @param values Values
  */

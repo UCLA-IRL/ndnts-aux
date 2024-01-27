@@ -8,7 +8,7 @@ const SnapshotKey = 'localSnapshot';
  * YjsStateManager manages updates transported by SyncAgent.
  * It receives and emits updates, encodes and loads local state as updates.
  */
-export class YjsStateManager {
+export class YjsStateManager implements AsyncDisposable {
   private readonly callback = this.docUpdateHandler.bind(this);
   private counter = 0;
 
@@ -21,9 +21,13 @@ export class YjsStateManager {
     doc.on('update', this.callback);
   }
 
-  public destroy() {
-    this.saveLocalSnapshot(this.getState());
+  public async destroy() {
+    await this.saveLocalSnapshot(this.getState());
     this.doc.off('update', this.callback);
+  }
+
+  async [Symbol.asyncDispose]() {
+    return await this.destroy();
   }
 
   private docUpdateHandler(_update: Uint8Array, origin: undefined) {

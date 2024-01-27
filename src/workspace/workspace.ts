@@ -5,7 +5,7 @@ import { encodeSyncState, parseSyncState, SyncAgent } from '../sync-agent/mod.ts
 import { NdnSvsAdaptor, YjsStateManager } from '../adaptors/mod.ts';
 import * as Y from 'yjs';
 
-export class Workspace {
+export class Workspace implements AsyncDisposable {
   private constructor(
     public readonly nodeId: Name,
     public readonly persistStore: Storage,
@@ -79,10 +79,16 @@ export class Workspace {
     this.syncAgent.fire();
   }
 
-  public destroy() {
+  public async destroy() {
     this.syncAgent.ready = false;
-    this.yjsSnapshotMgr.destroy();
-    this.syncAgent.destroy();
+    await Promise.all([
+      this.yjsSnapshotMgr.destroy(),
+      this.syncAgent.destroy(),
+    ]);
     // persistStore is not created by workspace
+  }
+
+  async [Symbol.asyncDispose]() {
+    return await this.destroy();
   }
 }

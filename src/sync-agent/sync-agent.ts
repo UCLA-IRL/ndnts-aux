@@ -12,7 +12,7 @@ import { panic } from '../utils/panic.ts';
 export type ChannelType = 'update' | 'blob' | 'status' | 'blobUpdate';
 const AllChannelValues = ['update', 'blob', 'status', 'blobUpdate'];
 
-export class SyncAgent {
+export class SyncAgent implements AsyncDisposable {
   private _ready = false;
   readonly listeners: { [key: string]: (content: Uint8Array, id: Name) => void } = {};
   readonly producer;
@@ -56,11 +56,15 @@ export class SyncAgent {
     });
   }
 
-  public destroy() {
-    this.atLeastOnce.destroy();
-    this.latestOnly.destroy();
+  public async destroy() {
+    await this.atLeastOnce.destroy();
+    await this.latestOnly.destroy();
     this.trafficAttractor.close();
     this.producer.close();
+  }
+
+  async [Symbol.asyncDispose]() {
+    return await this.destroy();
   }
 
   public reset() {
