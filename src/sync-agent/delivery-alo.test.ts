@@ -1,6 +1,6 @@
 import { Endpoint } from '@ndn/endpoint';
 import { Forwarder } from '@ndn/fw';
-import { Data, digestSigning, Name } from '@ndn/packet';
+import { Data, digestSigning, Name, type Signer, type Verifier } from '@ndn/packet';
 import { GenericNumber } from '@ndn/naming-convention2';
 import { Encoder } from '@ndn/tlv';
 import { assert, hex } from '../dep.ts';
@@ -41,14 +41,14 @@ class DeliveryTester implements AsyncDisposable {
     });
   }
 
-  async start(timeoutMs: number) {
+  async start(timeoutMs: number, signer: Signer = digestSigning, verifier: Verifier = digestSigning) {
     for (let i = 0; this.svsCount > i; i++) {
       const alo = await AtLeastOnceDelivery.create(
         name`/test/32=node/${i}`,
         this.endpoint,
         this.syncPrefix,
-        digestSigning,
-        digestSigning,
+        signer,
+        verifier,
         this.stores[i],
         Promise.resolve(this.onUpdate.bind(this)),
       );
@@ -112,7 +112,7 @@ const compareEvent = (a: SyncUpdateEvent, b: SyncUpdateEvent) => {
   }
 };
 
-Deno.test('basic test', async () => {
+Deno.test('Alo.1 Basic test', async () => {
   let eventSet;
   {
     const { promise: stopSignal, resolve: stop } = Promise.withResolvers<void>();
@@ -147,7 +147,7 @@ Deno.test('basic test', async () => {
   });
 });
 
-Deno.test('no missing due to parallel', async () => {
+Deno.test('Alo.2 No missing due to out-of-order', async () => {
   let eventSet;
   {
     const { promise: stopSignal1, resolve: stop1 } = Promise.withResolvers<void>();
@@ -213,7 +213,127 @@ Deno.test('no missing due to parallel', async () => {
   });
 });
 
-// Test recover after shutdown and replay
-// Test crash during onUpdate
-// Test unverified state interest
-// Test unverified data
+Deno.test('Alo.3 Recover after shutdown', async () => {
+  let eventSet;
+  {
+    const { promise: stopSignal0, resolve: stop0 } = Promise.withResolvers<void>();
+    const { promise: stopSignal1, resolve: stop1 } = Promise.withResolvers<void>();
+    const { promise: stopSignal2, resolve: stop2 } = Promise.withResolvers<void>();
+    await using tester = new DeliveryTester(2, () => {
+      if (tester.events.length === 1) {
+        stop0();
+      } else if (tester.events.length === 2) {
+        stop1();
+      } else if (tester.events.length === 4) {
+        stop2();
+      }
+      return Promise.resolve();
+    });
+    await tester.start(2000);
+
+    // Provide A and C. (no B)
+    await tester.alos[1].produce(new TextEncoder().encode('A'));
+    await stopSignal0; // Wait the database to be set
+    tester.alos[1].syncNode!.seqNum = 2;
+    await tester.alos[1].produce(new TextEncoder().encode('C'));
+    await stopSignal1;
+
+    // Stop alo 0
+    await tester.alos[0].destroy();
+
+    // Assert we have 'A' and 'C'
+    eventSet = tester.events.toSorted(compareEvent);
+    assert.assertEquals(eventSet.length, 2);
+    assert.assertEquals(eventSet[0], {
+      content: new TextEncoder().encode('A'),
+      origin: 1,
+      receiver: 0,
+    });
+    assert.assertEquals(eventSet[1], {
+      content: new TextEncoder().encode('C'),
+      origin: 1,
+      receiver: 0,
+    });
+
+    // Provide 'B'
+    await tester.dispositData(1, 2, new TextEncoder().encode('B'));
+
+    // Restart alo 0. It is supposed to deliver 'C' again.
+    tester.alos[0] = await AtLeastOnceDelivery.create(
+      name`/test/32=node/${0}`,
+      tester.endpoint,
+      tester.syncPrefix,
+      digestSigning,
+      digestSigning,
+      tester.stores[0],
+      Promise.resolve(tester.onUpdate.bind(tester)),
+    );
+    tester.alos[0].start();
+
+    // Wait for 'B' and 'C' again
+    await stopSignal2;
+
+    // Manually destroy alo0 since it is created outside
+    tester.alos[0].destroy();
+    eventSet = tester.events;
+  }
+
+  // Since it is unordered, we have to sort
+  eventSet.sort(compareEvent);
+  assert.assertEquals(eventSet.length, 4);
+  assert.assertEquals(eventSet[0], {
+    content: new TextEncoder().encode('A'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[1], {
+    content: new TextEncoder().encode('B'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[2], {
+    content: new TextEncoder().encode('C'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[3], {
+    content: new TextEncoder().encode('C'),
+    origin: 1,
+    receiver: 0,
+  });
+});
+
+// Alo.4 Crash during onUpdate
+// Unable to test for now
+
+// Alo.5 Data unverified
+// Unable to test for now
+// This kind of error may only come from two sources:
+// 1. authenticated users(producers)'s doing this on purpose,
+// 2. cache polution.
+// Case 1 is not very bad, since today's cloud application may still suffer from it.
+// If the user is allowed to modify data, it is kind of feature.
+// Case 2 needs network operator's help to eliminate.
+
+Deno.test('Alo.Ex Unverified SVS Sync interest', async () => {
+  // Note: this is handled by NDNts, not this library.
+
+  let eventSet;
+  {
+    await using tester = new DeliveryTester(2, () => {
+      throw new Error('Not suppsoed to handle any data');
+    });
+    await tester.start(2000, digestSigning, {
+      verify: () => Promise.reject('Always fail verifier'),
+    });
+
+    await tester.alos[1].produce(new TextEncoder().encode('0-Hello'));
+    await tester.alos[1].produce(new TextEncoder().encode('1-World'));
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    eventSet = tester.events;
+  }
+
+  // Should receive no data
+  assert.assertEquals(eventSet.length, 0);
+});

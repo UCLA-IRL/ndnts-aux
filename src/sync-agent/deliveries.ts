@@ -68,7 +68,8 @@ export abstract class SyncDelivery implements AsyncDisposable {
     SvSync.create({
       endpoint: endpoint,
       syncPrefix: syncPrefix,
-      signer: digestSigning,
+      signer: signer,
+      verifier: verifier,
       initialStateVector: new SvStateVector(state),
       initialize: async (svSync) => {
         this._syncInst = svSync;

@@ -1,6 +1,6 @@
 {
   "name": "@ucla-irl/ndnts-aux",
-  "version": "1.0.8",
+  "version": "1.0.9-rc1",
   "description": "NDNts Auxiliary Package for Web and Deno",
   "scripts": {
     "test": "deno test --no-check",
