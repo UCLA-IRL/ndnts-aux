@@ -20,6 +20,7 @@ export class CertStorage implements SecurityAgent {
     readonly storage: Storage,
     readonly endpoint: Endpoint,
     prvKeyBits: Uint8Array,
+    protected readonly interestLifetime = 5000,
   ) {
     this.readyEvent = (async () => {
       await this.importCert(trustAnchor);
@@ -67,7 +68,7 @@ export class CertStorage implements SecurityAgent {
             new Interest(
               keyName,
               Interest.MustBeFresh,
-              Interest.Lifetime(5000),
+              Interest.Lifetime(this.interestLifetime),
             ),
             {
               // Fetched key must be signed by a known key
@@ -126,12 +127,13 @@ export class CertStorage implements SecurityAgent {
     };
   }
 
-  async create(
+  public static async create(
     trustAnchor: Certificate,
     ownCertificate: Certificate,
     storage: Storage,
     endpoint: Endpoint,
     prvKeyBits: Uint8Array,
+    interestLifetime = 5000,
   ) {
     const result = new CertStorage(
       trustAnchor,
@@ -139,6 +141,7 @@ export class CertStorage implements SecurityAgent {
       storage,
       endpoint,
       prvKeyBits,
+      interestLifetime,
     );
     await result.readyEvent;
     return result;
