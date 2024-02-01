@@ -15,6 +15,8 @@ export type PatternComponent = {
 
 export type Pattern = Array<PatternComponent | Component>;
 
+export type Mapping = Record<string, MatchValue>;
+
 export const patternComponentToString = (comp: PatternComponent) => `<${comp.type}=${comp.tag}:${comp.kind}>`;
 
 export const componentToString = (comp: PatternComponent | Component) =>
@@ -30,7 +32,7 @@ export const toString = (pat: Pattern) => '/' + pat.map(componentToString).join(
 export const matchStep = (
   pattern: PatternComponent | Component,
   subject: Component,
-  mapping: Record<string, MatchValue>,
+  mapping: Mapping,
 ) => {
   if (pattern.type !== subject.type) {
     return false;
@@ -41,7 +43,7 @@ export const matchStep = (
     mapping[pattern.tag] = subject.value;
     return true;
   } else if (pattern.kind === 'string') {
-    mapping[pattern.tag] = new TextDecoder().decode(subject.value);
+    mapping[pattern.tag] = subject.text;
     return true;
   } else {
     try {
@@ -66,7 +68,7 @@ export const matchStep = (
 export const match = (
   pattern: Pattern,
   subject: Name,
-  mapping: Record<string, MatchValue>,
+  mapping: Mapping,
 ) => {
   // Remove automatically added component
   // ImplicitSha256DigestComponent(0x01) and ParametersSha256DigestComponent(0x02)
@@ -87,7 +89,7 @@ export const match = (
 
 export const makeStep = (
   pattern: PatternComponent | Component,
-  mapping: Record<string, MatchValue>,
+  mapping: Mapping,
 ) => {
   if (pattern instanceof Component) {
     return pattern;
@@ -112,10 +114,10 @@ export const makeStep = (
  */
 export const make = (
   pattern: Pattern,
-  mapping: Record<string, MatchValue>,
+  mapping: Mapping,
 ) => new Name(pattern.map((p) => makeStep(p, mapping)));
 
-export const componentFromString = (value: string) => {
+export const componentFromString = (value: string): Component | PatternComponent => {
   if (value.length === 0) {
     return new Component();
   }
@@ -128,17 +130,17 @@ export const componentFromString = (value: string) => {
     }
     return {
       type: parseInt(matching.groups.type),
-      kind: matching.groups.kind as PatternKind,
+      kind: matching.groups.kind as PatternKind, // Assume correct, no check
       tag: matching.groups.tag,
-    } as PatternComponent;
+    };
   }
 };
 
-export const fromString = (value: string) => {
+export const fromString = (value: string): Pattern => {
   if (value[0] === '/') {
     value = value.substring(1);
   }
-  return value.split('/').map(componentFromString) as Pattern;
+  return value.split('/').map(componentFromString);
 };
 
 export const pattern = ([value]: TemplateStringsArray) => {
