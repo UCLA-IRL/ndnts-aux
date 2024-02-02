@@ -164,3 +164,43 @@ export const touch = <R>(
   }
   return cur;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _callOld = <
+  Args extends Array<unknown>,
+  Key extends string,
+  Return,
+  R extends { [key in Key]: (matchedObj: MatchedObject<R>, ...args: Args) => Return },
+>(object: MatchedObject<R>, key: Key, ...args: Args): Return | undefined => {
+  return object.resource?.[key](object, ...args);
+};
+
+export const call = <
+  R,
+  Key extends {
+    // deno-lint-ignore no-explicit-any
+    [K in keyof R]: R[K] extends ((matchedObj: MatchedObject<R>, ...args: any[]) => unknown) ? K : never;
+  }[keyof R],
+>(
+  object: MatchedObject<R>,
+  key: Key,
+  ...args: R[Key] extends ((matchedObj: MatchedObject<R>, ...args: infer Args) => unknown) ? Args : never
+) => {
+  if (object.resource) {
+    return (object.resource[key] as (matchedObj: MatchedObject<R>, ...params: typeof args) => unknown)(
+      object,
+      ...args,
+      // deno-lint-ignore no-explicit-any
+    ) as (R[Key] extends (...args: any[]) => infer Return ? Return : never);
+  } else {
+    throw new Error(`Invalid schema tree node call on ${object.name.toString()}`);
+  }
+};
+
+export const create = <R>(): Node<R> => ({
+  fixedChildren: [],
+  children: new Map(),
+  parent: undefined,
+  upEdge: undefined,
+  resource: undefined,
+});
