@@ -423,8 +423,9 @@ export class LatestOnlyDelivery extends SyncDelivery {
       // Callback
       // LatestOnlyDelivery does not need to wait for this callback
       this._onUpdate!(data.content, update.id, this);
-    } catch (error) {
-      console.error(`Unable to fetch or verify ${name.toString()} due to: `, error);
+    } catch {
+      // console.error(`Unable to fetch or verify ${name.toString()} due to: `, error);
+      // Silently continue
     }
   }
 
