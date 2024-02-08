@@ -42,7 +42,7 @@ Deno.test('schemaTree.call', () => {
     name: name`/prefix/seq=${0}`,
     resource: reflector,
   };
-  const nodeId: string = schemaTree.call(matched, 'reflect', collector, 'request');
+  const nodeId = schemaTree.call(matched, 'reflect', collector, 'request');
   assertEquals(collector, {
     request: {
       nodeId: 'node',

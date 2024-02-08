@@ -1,6 +1,6 @@
 {
   "name": "@ucla-irl/ndnts-aux",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "NDNts Auxiliary Package for Web and Deno",
   "scripts": {
     "test": "deno test --no-check",
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "eventemitter3": "^5.0.1",
-    "jose": "^5.2.0",
+    "jose": "^5.2.1",
     "tslib": "^2.6.2",
     "y-protocols": "^1.0.6",
     "yjs": "^13.6.11"

@@ -27,6 +27,14 @@ export class Workspace implements AsyncDisposable {
     onReset?: () => void;
     createNewDoc?: () => Promise<void>;
   }) {
+    // Always init a new one, and then load.
+    if (opts.createNewDoc) {
+      await opts.createNewDoc();
+      const clientID = opts.rootDoc.clientID;
+      opts.rootDoc.clientID = 0;
+      opts.rootDoc.clientID = clientID;
+    }
+
     // Sync Agents
     const syncAgent = await SyncAgent.create(
       opts.nodeId,
@@ -50,16 +58,12 @@ export class Workspace implements AsyncDisposable {
       opts.persistStore,
     );
 
-    // Load or create
-    if (opts.createNewDoc) {
-      await opts.createNewDoc();
-    } else {
-      const state = await yjsSnapshotMgr.loadLocalSnapshot((update) => {
-        yjsAdaptor!.handleSyncUpdate(update);
-        return Promise.resolve();
-      });
-      await syncAgent.replayUpdates('doc', state ? parseSyncState(state) : undefined);
-    }
+    // Load local state
+    const state = await yjsSnapshotMgr.loadLocalSnapshot((update) => {
+      yjsAdaptor!.handleSyncUpdate(update);
+      return Promise.resolve();
+    });
+    await syncAgent.replayUpdates('doc', state ? parseSyncState(state) : undefined);
 
     // Start Sync
     syncAgent.ready = true;

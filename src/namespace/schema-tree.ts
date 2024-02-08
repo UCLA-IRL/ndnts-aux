@@ -7,16 +7,18 @@ export type Node<R> = {
     dest: Node<R>;
   }>;
   children: Map<number, Node<R>>;
-  parent: WeakRef<Node<R>> | undefined;
-  upEdge: namePattern.PatternComponent | Component | undefined;
-  resource: R | undefined;
+  parent?: WeakRef<Node<R>>;
+  upEdge?: namePattern.PatternComponent | Component;
+  resource?: R;
 };
 
 export type MatchedObject<R> = {
   mapping: namePattern.Mapping;
   name: Name;
-  resource: R | undefined;
+  resource?: R;
 };
+
+export type StrictMatch<R> = Required<MatchedObject<R>>;
 
 export const apply = <R>(
   node: Node<R>,
@@ -187,11 +189,11 @@ export const call = <
   ...args: R[Key] extends ((matchedObj: MatchedObject<R>, ...args: infer Args) => unknown) ? Args : never
 ) => {
   if (object.resource) {
-    return (object.resource[key] as (matchedObj: MatchedObject<R>, ...params: typeof args) => unknown)(
-      object,
-      ...args,
-      // deno-lint-ignore no-explicit-any
-    ) as (R[Key] extends (...args: any[]) => infer Return ? Return : never);
+    const func = object.resource[key] as ((
+      matchedObj: MatchedObject<R>,
+      ...params: typeof args
+    ) => R[Key] extends (matchedObj: MatchedObject<R>, ...params: typeof args) => infer Return ? Return : never);
+    return func(object, ...args);
   } else {
     throw new Error(`Invalid schema tree node call on ${object.name.toString()}`);
   }
