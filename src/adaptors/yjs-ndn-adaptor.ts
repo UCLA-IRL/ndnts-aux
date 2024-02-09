@@ -1,6 +1,7 @@
 import { SyncAgent } from '../sync-agent/mod.ts';
 import * as Y from 'yjs';
 import { Awareness } from 'y-protocols/awareness.js';
+import { Bundler } from './bundler.ts';
 
 /**
  * NDN SVS Provider for Yjs. Wraps update into `SyncAgent`'s `update` channel.
@@ -23,13 +24,26 @@ export class NdnSvsAdaptor {
     return this.#awareness;
   }
 
+  #bundler: Bundler | undefined;
+
   constructor(
     public syncAgent: SyncAgent,
     public readonly doc: Y.Doc,
     public readonly topic: string,
+    useBundler: boolean = false,
   ) {
     syncAgent.register('update', topic, (content) => this.handleSyncUpdate(content));
     doc.on('update', this.callback);
+    if (useBundler) {
+      this.#bundler = new Bundler(
+        Y.mergeUpdates,
+        (content) => this.syncAgent.publishUpdate(this.topic, content),
+        {
+          thresholdSize: 3000,
+          delayMs: 200,
+        },
+      );
+    }
   }
 
   public bindAwareness(subDoc: Y.Doc, docId: string) {
@@ -78,7 +92,11 @@ export class NdnSvsAdaptor {
   }
 
   private async produce(content: Uint8Array) {
-    await this.syncAgent.publishUpdate(this.topic, content);
+    if (this.#bundler) {
+      await this.#bundler.produce(content);
+    } else {
+      await this.syncAgent.publishUpdate(this.topic, content);
+    }
   }
 
   public handleSyncUpdate(content: Uint8Array) {
