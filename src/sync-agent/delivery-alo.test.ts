@@ -86,7 +86,7 @@ class DeliveryTester implements AsyncDisposable {
 
   async dispositData(id: number, seq: number, content: Uint8Array) {
     const data = new Data(
-      name`/test/32=node/${id}/test/32=alo/seq=${seq}`,
+      name`/test/32=node/${id}/seq=${seq}`,
       Data.FreshnessPeriod(60000),
       content,
     );
