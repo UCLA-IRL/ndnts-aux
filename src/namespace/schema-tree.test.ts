@@ -23,7 +23,7 @@ class Reflector {
     public readonly nodeId: string,
   ) {}
 
-  public reflect(matched: schemaTree.MatchedObject<Reflector>, mapping: TestCollector, reqId: string) {
+  public reflect(matched: schemaTree.StrictMatch<Reflector>, mapping: TestCollector, reqId: string) {
     mapping[reqId] = {
       nodeId: this.nodeId,
       reqId,

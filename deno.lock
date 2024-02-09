@@ -197,7 +197,7 @@
         "npm:abortable-iterator@^5.0.1",
         "npm:eventemitter3@^5.0.1",
         "npm:it-pushable@^3.2.3",
-        "npm:jose@^5.2.0",
+        "npm:jose@^5.2.1",
         "npm:p-defer@^4.0.0",
         "npm:streaming-iterables@^8.0.1",
         "npm:tslib@^2.6.2",

@@ -181,19 +181,19 @@ export const call = <
   R,
   Key extends {
     // deno-lint-ignore no-explicit-any
-    [K in keyof R]: R[K] extends ((matchedObj: MatchedObject<R>, ...args: any[]) => unknown) ? K : never;
+    [K in keyof R]: R[K] extends ((matchedObj: StrictMatch<R>, ...args: any[]) => unknown) ? K : never;
   }[keyof R],
 >(
   object: MatchedObject<R>,
   key: Key,
-  ...args: R[Key] extends ((matchedObj: MatchedObject<R>, ...args: infer Args) => unknown) ? Args : never
+  ...args: R[Key] extends ((matchedObj: StrictMatch<R>, ...args: infer Args) => unknown) ? Args : never
 ) => {
   if (object.resource) {
     const func = object.resource[key] as ((
-      matchedObj: MatchedObject<R>,
+      matchedObj: StrictMatch<R>,
       ...params: typeof args
-    ) => R[Key] extends (matchedObj: MatchedObject<R>, ...params: typeof args) => infer Return ? Return : never);
-    return func(object, ...args);
+    ) => R[Key] extends (matchedObj: StrictMatch<R>, ...params: typeof args) => infer Return ? Return : never);
+    return func.bind(object.resource)(object as StrictMatch<R>, ...args);
   } else {
     throw new Error(`Invalid schema tree node call on ${object.name.toString()}`);
   }

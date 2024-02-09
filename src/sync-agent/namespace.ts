@@ -22,7 +22,7 @@ export type SyncAgentNamespace = {
   /**
    * The base name of the SVS, i.e. `/<node-prefix>/<group-prefix>` in the Spec.
    * We have this function because the spec does not clearly say how to handle the application prefix.
-   * Default is: baseName(/ndn-app/node/1, /ndn-app/sync/late) = /ndn-app/node/1/ndn-app/sync/late
+   * Default is: baseName(/ndn-app/node/1, /ndn-app/sync/late) = /ndn-app/node/1/sync/late
    * @param nodeId the nodeID, e.g. /ndn-app/node/1
    * @param syncPrefix the sync group prefix, e.g. /ndn-app/sync/late
    */
@@ -90,7 +90,8 @@ function createDefaultNamespace(): SyncAgentNamespace {
     },
     baseName(nodeId: Name, syncPrefix: Name): Name {
       // append is side-effect free
-      return nodeId.append(...syncPrefix.comps);
+      const groupPrefix = syncPrefix.slice(nodeId.length - 1); // nodeId.length - 1 is appPrefix
+      return nodeId.append(...groupPrefix.comps);
     },
     syncStateKey(baseName: Name): string {
       return '/8=local' + baseName.toString() + '/8=syncVector';
