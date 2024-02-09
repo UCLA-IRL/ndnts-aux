@@ -52,11 +52,11 @@ export class BaseNode {
   public async processAttach(path: namePattern.Pattern, handler: NamespaceHandler) {
     // All children's attach events are called
     this.handler = handler;
-    await this.onAttach.emit(path, handler.endpoint);
+    await this.onAttach.emit(path, handler.endpoint!);
   }
 
   public async processDetach() {
-    await this.onDetach.emit(this.handler!.endpoint);
+    await this.onDetach.emit(this.handler!.endpoint!);
     this.handler = undefined;
     // Then call children's detach
   }

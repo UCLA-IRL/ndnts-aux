@@ -62,8 +62,9 @@ export class LeafNode extends ExpressingPoint {
     const payload = content instanceof Uint8Array ? content : new TextEncoder().encode(content);
 
     // Create Data
+    const dataName = this.handler!.attachedPrefix!.append(...matched.name.comps);
     const data = new Data(
-      matched.name,
+      dataName,
       Data.ContentType(this.config.contentType ?? 0), // Default is BLOB
       Data.FreshnessPeriod(opts.freshnessMs ?? this.config.freshnessMs),
       payload,

@@ -206,3 +206,21 @@ export const create = <R>(): Node<R> => ({
   upEdge: undefined,
   resource: undefined,
 });
+
+export const traverse = async <R>(
+  root: Node<R>,
+  action: {
+    pre?: (node: Node<R>, path: namePattern.Pattern) => Promise<void>;
+    post?: (node: Node<R>, path: namePattern.Pattern) => Promise<void>;
+  },
+  path: namePattern.Pattern = [],
+) => {
+  await action.pre?.(root, path);
+  for (const child of root.fixedChildren) {
+    await traverse(child.dest, action, [...path, child.edge]);
+  }
+  for (const child of root.fixedChildren) {
+    await traverse(child.dest, action, [...path, child.edge]);
+  }
+  await action.post?.(root, path);
+};

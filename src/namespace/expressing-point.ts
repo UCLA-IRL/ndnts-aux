@@ -130,7 +130,8 @@ export class ExpressingPoint extends BaseNode {
     } = {},
   ): Promise<Data | undefined> {
     // Construct Interest, but without signing, so the parameter digest is not there
-    const interestArgs = [matched.name] as Array<Interest.CtorArg>;
+    const interestName = this.handler!.attachedPrefix!.append(...matched.name.comps);
+    const interestArgs = [interestName] as Array<Interest.CtorArg>;
     if (this.config.canBePrefix) {
       // Be aware that if CanBePrefix is set, you may need to also validate the data against the LeafNode's validator.
       interestArgs.push(Interest.CanBePrefix);
@@ -180,7 +181,7 @@ export class ExpressingPoint extends BaseNode {
       return undefined;
     }
 
-    const data = await this.handler!.endpoint.consume(interest, {
+    const data = await this.handler!.endpoint!.consume(interest, {
       // deno-lint-ignore no-explicit-any
       signal: opts.abortSignal as any,
       retx: this.config.retx,

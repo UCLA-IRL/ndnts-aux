@@ -1,4 +1,4 @@
-import { Endpoint } from '@ndn/endpoint';
+import { Endpoint, Producer } from '@ndn/endpoint';
 import { Data, Interest, Name, type Verifier } from '@ndn/packet';
 // import * as namePattern from './name-pattern.ts';
 import * as schemaTree from './schema-tree.ts';
@@ -14,18 +14,24 @@ export enum VerifyResult {
 }
 
 export interface NamespaceHandler {
-  get endpoint(): Endpoint;
+  get endpoint(): Endpoint | undefined;
+  get attachedPrefix(): Name | undefined;
   getVerifier(deadline: number): Verifier;
   storeData(data: Data): Promise<void>;
 }
 
-export class NtSchema implements NamespaceHandler {
+export class NtSchema implements NamespaceHandler, AsyncDisposable {
   public readonly tree = schemaTree.create<BaseNode>();
   protected _endpoint: Endpoint | undefined;
   protected _attachedPrefix: Name | undefined;
+  protected _producer: Producer | undefined;
 
-  get endpoint(): Endpoint {
-    return this._endpoint!;
+  get endpoint() {
+    return this._endpoint;
+  }
+
+  get attachedPrefix() {
+    return this._attachedPrefix;
   }
 
   public match(name: Name) {
@@ -65,10 +71,28 @@ export class NtSchema implements NamespaceHandler {
     return undefined;
   }
 
-  // TODO: schemaTree.traverse
-  // public async attach(prefix: Name, endpoint: Endpoint) {
-  // }
+  public async attach(prefix: Name, endpoint: Endpoint) {
+    this._attachedPrefix = prefix;
+    this._endpoint = endpoint;
+    await schemaTree.traverse(this.tree, {
+      post: async (node, path) => await node.resource?.onAttach?.emit(path, endpoint),
+    });
 
-  // public async detach() {
-  // }
+    this._producer = endpoint.produce(prefix, this.onInterest.bind(this));
+  }
+
+  public async detach() {
+    this._producer!.close();
+    await schemaTree.traverse(this.tree, {
+      pre: async (node) => await node.resource?.onDetach?.emit(this.endpoint!),
+    });
+    this._endpoint = undefined;
+    this._attachedPrefix = undefined;
+  }
+
+  async [Symbol.asyncDispose]() {
+    if (this._producer) {
+      await this.detach();
+    }
+  }
 }
