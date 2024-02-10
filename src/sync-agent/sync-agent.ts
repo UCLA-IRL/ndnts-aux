@@ -1,12 +1,12 @@
 import { Endpoint } from '@ndn/endpoint';
 import { Data, type Interest, Name, Signer, type Verifier } from '@ndn/packet';
 import { Decoder, Encoder } from '@ndn/tlv';
-import { DataProducer, fetch, makeChunkSource } from '@ndn/segmented-object';
+import { BufferChunkSource, DataProducer, fetch } from '@ndn/segmented-object';
 import { concatBuffers } from '@ndn/util';
 import { AtLeastOnceDelivery, LatestOnlyDelivery, UpdateEvent } from './deliveries.ts';
 import { getNamespace } from './namespace.ts';
 import { InMemoryStorage, Storage } from '../storage/mod.ts';
-import { SvStateVector } from '@ndn/sync';
+import { StateVector } from '@ndn/svs';
 import { panic } from '../utils/panic.ts';
 
 export type ChannelType = 'update' | 'blob' | 'status' | 'blobUpdate';
@@ -246,7 +246,7 @@ export class SyncAgent implements AsyncDisposable {
     await this.persistStorage.set(name.toString(), blobContent);
 
     // Put segmented packets
-    const producer = DataProducer.create(makeChunkSource(blobContent), name, { signer: this.signer });
+    const producer = DataProducer.create(new BufferChunkSource(blobContent), name, { signer: this.signer });
     for await (const segment of producer.listData()) {
       this.persistStorage.set(segment.name.toString(), Encoder.encode(segment));
     }
@@ -329,13 +329,13 @@ export class SyncAgent implements AsyncDisposable {
   /**
    * Replay existing updates under specific topic
    */
-  async replayUpdates(topic: string, startFrom?: SvStateVector) {
+  async replayUpdates(topic: string, startFrom?: StateVector) {
     const listener = this.listeners[`update.${topic}`];
     if (!listener) {
       throw new Error('You cannot call replayUpdates without a listener');
     }
 
-    const start = startFrom ?? new SvStateVector();
+    const start = startFrom ?? new StateVector();
     await this.atLeastOnce.replay(start, async (wire, id) => {
       const inner = this.parseInnerData(wire);
       if (!inner) {
@@ -363,7 +363,7 @@ export class SyncAgent implements AsyncDisposable {
   }
 
   public getUpdateSyncSV() {
-    return new SvStateVector(this.atLeastOnce.syncState);
+    return new StateVector(this.atLeastOnce.syncState);
   }
 
   static async create(

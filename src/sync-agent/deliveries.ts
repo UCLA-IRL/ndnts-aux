@@ -1,5 +1,5 @@
 import { type Endpoint } from '@ndn/endpoint';
-import { SvStateVector, SvSync, type SyncNode, type SyncUpdate } from '@ndn/sync';
+import { StateVector, SvSync, type SyncNode, type SyncUpdate } from '@ndn/svs';
 import { Data, digestSigning, Name, Signer, type Verifier } from '@ndn/packet';
 import { SequenceNum } from '@ndn/naming-convention2';
 import { Decoder, Encoder } from '@ndn/tlv';
@@ -8,17 +8,17 @@ import { getNamespace } from './namespace.ts';
 import { Storage } from '../storage/mod.ts';
 import { panic } from '../utils/panic.ts';
 
-export function encodeSyncState(state: SvStateVector): Uint8Array {
+export function encodeSyncState(state: StateVector): Uint8Array {
   return Encoder.encode(state);
 }
 
-export function parseSyncState(vector: Uint8Array): SvStateVector {
+export function parseSyncState(vector: Uint8Array): StateVector {
   try {
-    const ret = Decoder.decode(vector, SvStateVector);
+    const ret = Decoder.decode(vector, StateVector);
     return ret;
   } catch (e) {
-    console.error(`Unable to parse SvStateVector: `, e);
-    return new SvStateVector();
+    console.error(`Unable to parse StateVector: `, e);
+    return new StateVector();
   }
 }
 
@@ -42,7 +42,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
   private _startPromiseResolve?: () => void;
   protected _onReset?: () => void;
   protected _abortController: AbortController;
-  protected _lastTillNow: SvStateVector;
+  protected _lastTillNow: StateVector;
 
   // TODO: Use options to configure parameters
   constructor(
@@ -52,7 +52,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
     readonly signer: Signer,
     readonly verifier: Verifier,
     onUpdatePromise: Promise<UpdateEvent>,
-    protected state?: SvStateVector,
+    protected state?: StateVector,
   ) {
     // const nodeId = getNamespace().nodeIdFromSigner(this.signer.name)
     this.baseName = getNamespace().baseName(nodeId, syncPrefix);
@@ -63,14 +63,14 @@ export abstract class SyncDelivery implements AsyncDisposable {
       }
     });
     this._abortController = new AbortController();
-    this._lastTillNow = new SvStateVector(this.state);
+    this._lastTillNow = new StateVector(this.state);
 
     SvSync.create({
       endpoint: endpoint,
       syncPrefix: syncPrefix,
       signer: signer,
       verifier: verifier,
-      initialStateVector: new SvStateVector(state),
+      initialStateVector: new StateVector(state),
       initialize: async (svSync) => {
         this._syncInst = svSync;
         this._syncInst.addEventListener('update', (update) => this.handleSyncUpdate(update));
@@ -101,7 +101,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
   }
 
   public get syncState() {
-    return new SvStateVector(this.state);
+    return new StateVector(this.state);
   }
 
   /**
@@ -155,7 +155,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
     console.warn('A Sync reset is scheduled.');
     this._abortController.abort('Reset');
     this._abortController = new AbortController();
-    this._lastTillNow = new SvStateVector(this.state);
+    this._lastTillNow = new StateVector(this.state);
     this._syncInst.close();
     this._syncNode = undefined;
     const svSync = await SvSync.create({
@@ -163,7 +163,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
       syncPrefix: this.syncPrefix,
       signer: digestSigning,
       // We can do so because the state has not been set
-      initialStateVector: new SvStateVector(this.state),
+      initialStateVector: new StateVector(this.state),
       initialize: (svSync) => {
         this._syncInst = svSync;
         this._syncInst.addEventListener('update', (update) => this.handleSyncUpdate(update));
@@ -227,7 +227,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     readonly verifier: Verifier,
     readonly storage: Storage,
     onUpdatePromise: Promise<UpdateEvent>,
-    protected state?: SvStateVector,
+    protected state?: StateVector,
   ) {
     super(nodeId, endpoint, syncPrefix, signer, verifier, onUpdatePromise, state);
   }
@@ -263,7 +263,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
 
         // Callback
         // AtLeastOnce is required to have the callback acknowledged
-        // before writing the new SvStateVector into the storage
+        // before writing the new StateVector into the storage
         await this._onUpdate!(data.content, update.id, this);
       }
     } catch (error) {
@@ -358,7 +358,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     // const nodeId = getNamespace().nodeIdFromSigner(signer.name)
     const baseName = getNamespace().baseName(nodeId, syncPrefix);
     const encoded = await storage.get(getNamespace().syncStateKey(baseName));
-    let syncState = new SvStateVector();
+    let syncState = new StateVector();
     if (encoded) {
       syncState = parseSyncState(encoded);
     }
@@ -369,7 +369,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     return await super.destroy(this.storage);
   }
 
-  async replay(startFrom: SvStateVector, callback: UpdateEvent) {
+  async replay(startFrom: StateVector, callback: UpdateEvent) {
     for (const [key, last] of this.syncState) {
       const first = startFrom.get(key);
       const prefix = getNamespace().baseName(key, this.syncPrefix);
@@ -401,7 +401,7 @@ export class LatestOnlyDelivery extends SyncDelivery {
     readonly pktStorage: Storage,
     readonly stateStorage: Storage,
     readonly onUpdatePromise: Promise<UpdateEvent>,
-    protected state?: SvStateVector,
+    protected state?: StateVector,
   ) {
     super(nodeId, endpoint, syncPrefix, signer, verifier, onUpdatePromise, state);
   }
@@ -467,7 +467,7 @@ export class LatestOnlyDelivery extends SyncDelivery {
     // const nodeId = getNamespace().nodeIdFromSigner(signer.name)
     const baseName = getNamespace().baseName(nodeId, syncPrefix);
     const encoded = await stateStorage.get(getNamespace().syncStateKey(baseName));
-    let syncState = new SvStateVector();
+    let syncState = new StateVector();
     if (encoded) {
       syncState = parseSyncState(encoded);
     }

@@ -23,7 +23,7 @@
     "jose": "^5.2.1",
     "tslib": "^2.6.2",
     "y-protocols": "^1.0.6",
-    "yjs": "^13.6.11"
+    "yjs": "^13.6.12"
   },
   "devDependencies": {
     "@ndn/endpoint": "https://ndnts-nightly.ndn.today/endpoint.tgz",
@@ -37,7 +37,7 @@
     "@ndn/node-transport": "https://ndnts-nightly.ndn.today/node-transport.tgz",
     "@ndn/packet": "https://ndnts-nightly.ndn.today/packet.tgz",
     "@ndn/segmented-object": "https://ndnts-nightly.ndn.today/segmented-object.tgz",
-    "@ndn/sync": "https://ndnts-nightly.ndn.today/sync.tgz",
+    "@ndn/svs": "https://ndnts-nightly.ndn.today/svs.tgz",
     "@ndn/tlv": "https://ndnts-nightly.ndn.today/tlv.tgz",
     "@ndn/util": "https://ndnts-nightly.ndn.today/util.tgz",
     "@ndn/ws-transport": "https://ndnts-nightly.ndn.today/ws-transport.tgz",
@@ -59,7 +59,7 @@
     "@ndn/node-transport": ">=0.0.0",
     "@ndn/packet": ">=0.0.0",
     "@ndn/segmented-object": ">=0.0.0",
-    "@ndn/sync": ">=0.0.0",
+    "@ndn/svs": ">=0.0.0",
     "@ndn/tlv": ">=0.0.0",
     "@ndn/util": ">=0.0.0",
     "@ndn/ws-transport": ">=0.0.0"

@@ -16,10 +16,10 @@ dependencies:
     version: 2.6.2
   y-protocols:
     specifier: ^1.0.6
-    version: 1.0.6(yjs@13.6.11)
+    version: 1.0.6(yjs@13.6.12)
   yjs:
-    specifier: ^13.6.11
-    version: 13.6.11
+    specifier: ^13.6.12
+    version: 13.6.12
 
 devDependencies:
   '@ndn/endpoint':
@@ -55,9 +55,9 @@ devDependencies:
   '@ndn/segmented-object':
     specifier: https://ndnts-nightly.ndn.today/segmented-object.tgz
     version: '@ndnts-nightly.ndn.today/segmented-object.tgz'
-  '@ndn/sync':
-    specifier: https://ndnts-nightly.ndn.today/sync.tgz
-    version: '@ndnts-nightly.ndn.today/sync.tgz'
+  '@ndn/svs':
+    specifier: https://ndnts-nightly.ndn.today/svs.tgz
+    version: '@ndnts-nightly.ndn.today/svs.tgz'
   '@ndn/tlv':
     specifier: https://ndnts-nightly.ndn.today/tlv.tgz
     version: '@ndnts-nightly.ndn.today/tlv.tgz'
@@ -175,10 +175,6 @@ packages:
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
       uri-js: 4.4.1
-    dev: true
-
-  /applymixins@1.1.0:
-    resolution: {integrity: sha512-mLvdWWGyCbRJyLC0BJCRu1m/642aVVq3kIwD1MWwmdedkVGwXVrx5D85EhkAtb4NgkCfVTDwacIhTDeX3gu55w==}
     dev: true
 
   /b64-lite@1.4.0:
@@ -503,11 +499,6 @@ packages:
       obliterator: 2.0.4
     dev: true
 
-  /murmurhash3js-revisited@3.0.0:
-    resolution: {integrity: sha512-/sF3ee6zvScXMb1XFJ8gDsSnY+X8PbOyjIuBhtgis10W2Jx4ZjIhikUCIF9c4gpJxVnQIsPAFrSwTCuAjicP6g==}
-    engines: {node: '>=8.0.0'}
-    dev: true
-
   /node-gyp-build@4.8.0:
     resolution: {integrity: sha512-u6fs2AEUljNho3EYTJNBfImO5QTo/J/1Etd+NVdCj7qWKUSN/bSLkZwhDv7I+w/MSC6qJ4cknepkAYykDdK8og==}
     hasBin: true
@@ -557,10 +548,6 @@ packages:
   /p-timeout@6.1.2:
     resolution: {integrity: sha512-UbD77BuZ9Bc9aABo74gfXhNvzC9Tx7SxtHSh1fxvx3jTLLYvmVhiQZZrJzqqU0jKbN32kb5VOKiLEQI/3bIjgQ==}
     engines: {node: '>=14.16'}
-    dev: true
-
-  /pako@2.1.0:
-    resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==}
     dev: true
 
   /parseley@0.12.1:
@@ -735,18 +722,18 @@ packages:
       bufferutil: 4.0.8
     dev: true
 
-  /y-protocols@1.0.6(yjs@13.6.11):
+  /y-protocols@1.0.6(yjs@13.6.12):
     resolution: {integrity: sha512-vHRF2L6iT3rwj1jub/K5tYcTT/mEYDUppgNPXwp8fmLpui9f7Yeq3OEtTLVF012j39QnV+KEQpNqoN7CWU7Y9Q==}
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
     peerDependencies:
       yjs: ^13.0.0
     dependencies:
       lib0: 0.2.88
-      yjs: 13.6.11
+      yjs: 13.6.12
     dev: false
 
-  /yjs@13.6.11:
-    resolution: {integrity: sha512-FvRRJKX9u270dOLkllGF/UDCWwmIv2Z+ucM4v1QO1TuxdmoiMnSUXH1HAcOKOrkBEhQtPTkxep7tD2DrQB+l0g==}
+  /yjs@13.6.12:
+    resolution: {integrity: sha512-KOT8ILoyVH2f/PxPadeu5kVVS055D1r3x1iFfJVJzFdnN98pVGM8H07NcKsO+fG3F7/0tf30Vnokf5YIqhU/iw==}
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
     dependencies:
       lib0: 0.2.88
@@ -925,29 +912,6 @@ packages:
       type-fest: 4.10.2
     dev: true
 
-  '@ndnts-nightly.ndn.today/psync.tgz':
-    resolution: {tarball: https://ndnts-nightly.ndn.today/psync.tgz}
-    name: '@ndn/psync'
-    version: 0.0.20240209-nightly-9b234f4
-    dependencies:
-      '@ndn/endpoint': '@ndnts-nightly.ndn.today/endpoint.tgz'
-      '@ndn/naming-convention2': '@ndnts-nightly.ndn.today/naming-convention2.tgz'
-      '@ndn/packet': '@ndnts-nightly.ndn.today/packet.tgz'
-      '@ndn/segmented-object': '@ndnts-nightly.ndn.today/segmented-object.tgz'
-      '@ndn/sync-api': '@ndnts-nightly.ndn.today/sync-api.tgz'
-      '@ndn/tlv': '@ndnts-nightly.ndn.today/tlv.tgz'
-      '@ndn/util': '@ndnts-nightly.ndn.today/util.tgz'
-      '@yoursunny/psync-bloom': github.com/yoursunny/PSyncBloom-wasm/d4f18babd44f142021046d5a76ae92efbc5a49d3
-      applymixins: 1.1.0
-      mnemonist: 0.39.8
-      murmurhash3js-revisited: 3.0.0
-      obliterator: 2.0.4
-      p-defer: 4.0.0
-      pako: 2.1.0
-      tslib: 2.6.2
-      typescript-event-target: 1.1.0
-    dev: true
-
   '@ndnts-nightly.ndn.today/rdr.tgz':
     resolution: {tarball: https://ndnts-nightly.ndn.today/rdr.tgz}
     name: '@ndn/rdr'
@@ -1032,33 +996,6 @@ packages:
       typescript-event-target: 1.1.0
     dev: true
 
-  '@ndnts-nightly.ndn.today/sync.tgz':
-    resolution: {tarball: https://ndnts-nightly.ndn.today/sync.tgz}
-    name: '@ndn/sync'
-    version: 0.0.20240209-nightly-9b234f4
-    dependencies:
-      '@ndn/endpoint': '@ndnts-nightly.ndn.today/endpoint.tgz'
-      '@ndn/naming-convention2': '@ndnts-nightly.ndn.today/naming-convention2.tgz'
-      '@ndn/packet': '@ndnts-nightly.ndn.today/packet.tgz'
-      '@ndn/psync': '@ndnts-nightly.ndn.today/psync.tgz'
-      '@ndn/repo-api': '@ndnts-nightly.ndn.today/repo-api.tgz'
-      '@ndn/segmented-object': '@ndnts-nightly.ndn.today/segmented-object.tgz'
-      '@ndn/svs': '@ndnts-nightly.ndn.today/svs.tgz'
-      '@ndn/sync-api': '@ndnts-nightly.ndn.today/sync-api.tgz'
-      '@ndn/tlv': '@ndnts-nightly.ndn.today/tlv.tgz'
-      '@ndn/util': '@ndnts-nightly.ndn.today/util.tgz'
-      '@yoursunny/psync-bloom': github.com/yoursunny/PSyncBloom-wasm/d4f18babd44f142021046d5a76ae92efbc5a49d3
-      applymixins: 1.1.0
-      mnemonist: 0.39.8
-      murmurhash3js-revisited: 3.0.0
-      obliterator: 2.0.4
-      p-defer: 4.0.0
-      pako: 2.1.0
-      streaming-iterables: 8.0.1
-      tslib: 2.6.2
-      typescript-event-target: 1.1.0
-    dev: true
-
   '@ndnts-nightly.ndn.today/tlv.tgz':
     resolution: {tarball: https://ndnts-nightly.ndn.today/tlv.tgz}
     name: '@ndn/tlv'
@@ -1101,10 +1038,4 @@ packages:
       bufferutil: 4.0.8
     transitivePeerDependencies:
       - utf-8-validate
-    dev: true
-
-  github.com/yoursunny/PSyncBloom-wasm/d4f18babd44f142021046d5a76ae92efbc5a49d3:
-    resolution: {tarball: https://codeload.github.com/yoursunny/PSyncBloom-wasm/tar.gz/d4f18babd44f142021046d5a76ae92efbc5a49d3}
-    name: '@yoursunny/psync-bloom'
-    version: 0.0.0
     dev: true
