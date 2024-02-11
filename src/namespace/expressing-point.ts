@@ -19,6 +19,7 @@ export interface ExpressingPointEvents extends BaseNodeEvents {
       target: schemaTree.StrictMatch<ExpressingPoint>;
       deadline: number;
       pkt: Verifier.Verifiable;
+      prevResult: VerifyResult;
     },
   ): Promise<VerifyResult>;
 
@@ -41,7 +42,7 @@ export type ExpressingPointOpts = {
 };
 
 export class ExpressingPoint extends BaseNode {
-  /** Called when Interest received */
+  /** Called when Interest received. Note: calling `need` on this node will not trigger this callback. */
   public readonly onInterest = new EventChain<ExpressingPointEvents['interest']>();
 
   /** Verify Interest event. Also verifies Data if this is a LeafNode */
@@ -71,8 +72,14 @@ export class ExpressingPoint extends BaseNode {
   ) {
     const verifyResult = await this.onVerify.chain(
       VerifyResult.Unknown,
-      (ret, args) => Promise.resolve((ret < VerifyResult.Unknown || ret >= VerifyResult.Bypass) ? Stop : [args]),
-      { target: matched, pkt, deadline },
+      (ret, args) =>
+        Promise.resolve(
+          (ret < VerifyResult.Unknown || ret >= VerifyResult.Bypass) ? Stop : [{
+            ...args,
+            prevResult: ret,
+          }],
+        ),
+      { target: matched, pkt, deadline, prevResult: VerifyResult.Unknown },
     );
     return verifyResult >= VerifyResult.Pass;
   }

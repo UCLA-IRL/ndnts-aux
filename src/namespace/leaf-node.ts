@@ -13,7 +13,7 @@ export interface LeafNodeEvents extends ExpressingPointEvents {
       wire: Uint8Array;
       validUntil: number;
     },
-  ): Promise<Data | undefined>;
+  ): Promise<void>;
 }
 
 export type LeafNodeOpts = ExpressingPointOpts & {

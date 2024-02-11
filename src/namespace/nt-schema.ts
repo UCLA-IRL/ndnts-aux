@@ -75,16 +75,20 @@ export class NtSchema implements NamespaceHandler, AsyncDisposable {
     this._attachedPrefix = prefix;
     this._endpoint = endpoint;
     await schemaTree.traverse(this.tree, {
-      post: async (node, path) => await node.resource?.onAttach?.emit(path, endpoint),
+      post: async (node, path) => await node.resource?.processAttach(path, this),
     });
 
-    this._producer = endpoint.produce(prefix, this.onInterest.bind(this));
+    this._producer = endpoint.produce(prefix, this.onInterest.bind(this), {
+      describe: `NtSchema[${prefix.toString()}]`,
+      routeCapture: false,
+      announcement: prefix,
+    });
   }
 
   public async detach() {
     this._producer!.close();
     await schemaTree.traverse(this.tree, {
-      pre: async (node) => await node.resource?.onDetach?.emit(this.endpoint!),
+      pre: async (node) => await node.resource?.processDetach(),
     });
     this._endpoint = undefined;
     this._attachedPrefix = undefined;

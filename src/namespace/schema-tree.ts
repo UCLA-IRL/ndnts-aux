@@ -109,11 +109,11 @@ export const get = <R>(
   return cur;
 };
 
-export const touch = <R>(
+export const touch = <R, T extends R = R>(
   root: Node<R>,
   path: namePattern.Pattern,
   resource?: R,
-): Node<R> => {
+): Node<T> => {
   let cur: Node<R> = root;
   for (const pat of path) {
     if (pat instanceof Component) {
@@ -164,7 +164,7 @@ export const touch = <R>(
   if (resource) {
     cur.resource = resource;
   }
-  return cur;
+  return cur as Node<T>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -219,8 +219,20 @@ export const traverse = async <R>(
   for (const child of root.fixedChildren) {
     await traverse(child.dest, action, [...path, child.edge]);
   }
-  for (const child of root.fixedChildren) {
-    await traverse(child.dest, action, [...path, child.edge]);
+  for (const child of root.children.values()) {
+    await traverse(child, action, [...path, child.upEdge!]);
   }
   await action.post?.(root, path);
+};
+
+export const cast = <R, T extends R & object>(
+  object: MatchedObject<R> | undefined,
+  // deno-lint-ignore no-explicit-any
+  cls: { new (...args: any[]): T },
+): StrictMatch<T> | undefined => {
+  if (object?.resource instanceof cls) {
+    return object as StrictMatch<T>;
+  } else {
+    return undefined;
+  }
 };
