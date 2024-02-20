@@ -1,54 +1,53 @@
-import { Decoder, Encoder } from '@ndn/tlv';
-import { Data, Interest, Name, Signer, Verifier } from '@ndn/packet';
-import { Certificate, createSigner, createVerifier, ECDSA } from '@ndn/keychain';
-import { Endpoint } from '@ndn/endpoint';
-import { Storage } from '../storage/mod.ts';
-import { SecurityAgent } from './types.ts';
+import { Encoder, Decoder } from "@ndn/tlv"
+import { Name, Data, Verifier, Signer, Interest } from "@ndn/packet"
+import {
+  Certificate, createVerifier, createSigner, ECDSA
+} from "@ndn/keychain"
+import { Storage } from "../storage"
+import { Endpoint } from "@ndn/endpoint"
 
 /**
  * A Signer & Verifier that handles security authentication.
  * CertStorage itself is not a storage, actually. Depend on an external storage.
- * Note: CertStorage will not serve the certificate.
  */
-export class CertStorage implements SecurityAgent {
-  private _signer: Signer | undefined;
-  readonly readyEvent: Promise<void>;
+export class CertStorage {
+  private _signer: Signer | undefined
+  readonly readyEvent: Promise<void>
+  private trustedNames: string[] = [];
 
   constructor(
     readonly trustAnchor: Certificate,
     readonly ownCertificate: Certificate,
     readonly storage: Storage,
     readonly endpoint: Endpoint,
-    prvKeyBits: Uint8Array,
-    protected readonly interestLifetime = 5000,
+    prvKeyBits: Uint8Array
   ) {
     this.readyEvent = (async () => {
-      await this.importCert(trustAnchor);
-      await this.importCert(ownCertificate);
+      await this.importCert(trustAnchor)
+      await this.importCert(ownCertificate)
       const keyPair = await ECDSA.cryptoGenerate({
-        importPkcs8: [prvKeyBits, ownCertificate.publicKeySpki],
-      }, true);
+        importPkcs8: [prvKeyBits, ownCertificate.publicKeySpki]
+      }, true)
       this._signer = createSigner(
         ownCertificate.name.getPrefix(ownCertificate.name.length - 2),
         ECDSA,
-        keyPair,
-      ).withKeyLocator(ownCertificate.name);
-    })();
+        keyPair).withKeyLocator(ownCertificate.name)
+    })()
   }
 
   /** Obtain the signer */
   get signer() {
-    return this._signer!;
+    return this._signer
   }
 
   /** Obtain this node's own certificate */
   get certificate() {
-    return this.ownCertificate;
+    return this.ownCertificate
   }
 
   /** Import an external certificate into the storage */
   async importCert(cert: Certificate) {
-    await this.storage.set(cert.name.toString(), Encoder.encode(cert.data));
+    await this.storage.set(cert.name.toString(), Encoder.encode(cert.data))
   }
 
   /**
@@ -58,36 +57,34 @@ export class CertStorage implements SecurityAgent {
    * @returns The fetched certificate. `undefined` if not found.
    */
   async getCertificate(keyName: Name, localOnly: boolean): Promise<Certificate | undefined> {
-    const certBytes = await this.storage.get(keyName.toString());
-    if (certBytes === undefined || certBytes.length === 0) { // Length 0 happens for parallel access reason
+    const certBytes = await this.storage.get(keyName.toString())
+    if (certBytes === undefined) {
       if (localOnly) {
-        return undefined;
+        return undefined
       } else {
         try {
-          const result = await this.endpoint.consume(
-            new Interest(
-              keyName,
-              Interest.MustBeFresh,
-              Interest.Lifetime(this.interestLifetime),
-            ),
-            {
-              // Fetched key must be signed by a known key
-              // TODO: Find a better way to handle security
-              verifier: this.localVerifier,
-              retx: 5,
-            },
-          );
+          const result = await this.endpoint.consume(new Interest(
+            keyName,
+            Interest.MustBeFresh,
+            Interest.Lifetime(5000),
+          ), {
+            // Fetched key must be signed by a known key
+            // TODO: Find a better way to handle security
+            verifier: this.localVerifier,
+            retx: 5,
+          })
 
           // Cache result certificates
-          this.storage.set(result.name.toString(), Encoder.encode(result));
+          this.storage.set(result.name.toString(), Encoder.encode(result))
+          this.trustedNames.push(result.name.toString())
 
-          return Certificate.fromData(result);
+          return Certificate.fromData(result)
         } catch {
-          return undefined;
+          return undefined
         }
       }
     } else {
-      return Certificate.fromData(Decoder.decode(certBytes, Data));
+      return Certificate.fromData(Decoder.decode(certBytes, Data))
     }
   }
 
@@ -97,53 +94,111 @@ export class CertStorage implements SecurityAgent {
    * @param localOnly If `true`, only look up the local storage for the certificate.
    */
   async verify(pkt: Verifier.Verifiable, localOnly: boolean) {
-    const keyName = pkt.sigInfo?.keyLocator?.name;
+    const keyName = pkt.sigInfo?.keyLocator?.name
     if (!keyName) {
-      throw new Error(`Data not signed: ${pkt.name.toString()}`);
+      throw new Error(`Data not signed: ${pkt.name.toString()}`)
     }
-    const cert = await this.getCertificate(keyName, localOnly);
+    const cert = await this.getCertificate(keyName, localOnly)
     if (cert === undefined) {
-      throw new Error(`No certificate: ${pkt.name.toString()} signed by ${keyName.toString()}`);
+      throw new Error(`No certificate: ${pkt.name.toString()} signed by ${keyName.toString()}`)
     }
-    const verifier = await createVerifier(cert, { algoList: [ECDSA] });
+    const verifier = await createVerifier(cert, { algoList: [ECDSA] })
     try {
-      await verifier.verify(pkt);
+      await verifier.verify(pkt)
     } catch (error) {
-      throw new Error(`Unable to verify ${pkt.name.toString()} signed by ${keyName.toString()} due to: ${error}`);
+      throw new Error(`Unable to verify ${pkt.name.toString()} signed by ${keyName.toString()} due to: ${error}`)
     }
   }
 
   /** Obtain an verifier that fetches certificate */
   get verifier(): Verifier {
     return {
-      verify: (pkt) => this.verify(pkt, false),
-    };
+      verify: pkt => this.verify(pkt, false)
+    }
   }
 
   /** Obtain an verifier that does not fetch certificate remotely */
   get localVerifier(): Verifier {
     return {
-      verify: (pkt) => this.verify(pkt, true),
-    };
+      verify: pkt => this.verify(pkt, true)
+    }
   }
 
-  public static async create(
+  async create(
     trustAnchor: Certificate,
     ownCertificate: Certificate,
     storage: Storage,
     endpoint: Endpoint,
-    prvKeyBits: Uint8Array,
-    interestLifetime = 5000,
+    prvKeyBits: Uint8Array
   ) {
     const result = new CertStorage(
-      trustAnchor,
-      ownCertificate,
-      storage,
-      endpoint,
-      prvKeyBits,
-      interestLifetime,
-    );
-    await result.readyEvent;
-    return result;
+      trustAnchor, ownCertificate, storage, endpoint, prvKeyBits
+    )
+    await result.readyEvent
+    return result
   }
 }
+
+
+  /**
+   * Modified version of getCertificate function, designed for trying to
+   * fetch PoR from all other already trusted parties
+   * @param strangerKeyname First part of PoR name, i.e. "/<𝑍𝑏 name>/KEY/<𝑇𝑏 keyid>"
+   */
+  async function fetchPoR(strangerKeyname: Name){
+    // loop through trusted certificates
+    this.trustedNames.forEach((item: string) => {
+      // Construct <Z_a name encoded>
+      const parts: string[] = item.split("/");
+      let partsBeforeKey: string = "";
+      for (let i = 0; i < parts.length; i++) { //put <Z_a name encoded> together with a loop
+        if (parts[i].includes("KEY")) {
+            break;
+        }
+        partsBeforeKey += parts[i] + "/";
+    }
+      
+      // return if we found that one of the users we trust, also trusts the new user
+      const response: Certificate | undefined = this.getCertificate(strangerKeyname + partsBeforeKey + "v1", false);
+      if (response != undefined){
+        return response
+      }
+      
+
+    }); 
+
+    // If not getting at least one POR, return undefined
+    return undefined
+
+  }
+
+
+  async function generatePoR(
+    strangerKeyname: Name, // name of t_b, i.e. "/<𝑍𝑏 name>/KEY/<𝑇𝑏 keyid>"
+    certName: string, // follow PoR naming format
+  ): Promise<Certificate> {
+    // Request POR certificate issued by every other known (authenticated) user
+    const foreignPoR: Certificate | undefined = fetchPoR(strangerKeyname);
+    
+    // If not getting at least one POR, abort (treat as data verification failure)
+    if (foreignPoR == undefined){
+      throw new Error("Data verification failure: No POR certificate found issued by trusted user");
+    }
+
+    // Get public key of C_b
+    const publicKey = this.getCertificate(strangerKeyname, false).getPublicKey() // public key of C_b
+    
+    // Create a self-signed certificate, i.e. the PoR
+    const proofOfZoneRecognition = Certificate.issue({
+    name: certName,
+    publicKey: publicKey,
+    privateKey: this._signer
+    });
+
+    // Cache PoR certificate
+    this.storage.set(proofOfZoneRecognition.name.toString(), Encoder.encode(proofOfZoneRecognition))
+
+    return proofOfZoneRecognition
+
+  }
+  
