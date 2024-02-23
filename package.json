@@ -19,9 +19,11 @@
     "url": "https://github.com/UCLA-IRL/ndnts-aux/issues"
   },
   "dependencies": {
+    "event-iterator": "^2.0.0",
     "eventemitter3": "^5.0.1",
     "jose": "^5.2.1",
     "tslib": "^2.6.2",
+    "type-fest": "^4.10.2",
     "y-protocols": "^1.0.6",
     "yjs": "^13.6.12"
   },

@@ -33,7 +33,7 @@ export interface ExpressingPointEvents extends BaseNodeEvents {
 }
 
 export type ExpressingPointOpts = {
-  lifetimeMs: number;
+  lifetimeMs?: number;
   interestSigner?: Signer;
   canBePrefix?: boolean;
   mustBeFresh?: boolean;
@@ -53,8 +53,9 @@ export class ExpressingPoint extends BaseNode {
 
   constructor(
     public readonly config: ExpressingPointOpts,
+    describe?: string,
   ) {
-    super();
+    super(describe);
   }
 
   public searchCache(target: schemaTree.StrictMatch<ExpressingPoint>, interest: Interest, deadline: number) {
@@ -134,8 +135,9 @@ export class ExpressingPoint extends BaseNode {
       signer?: Signer;
       lifetimeMs?: number;
       deadline?: number;
+      verifier?: Verifier;
     } = {},
-  ): Promise<Data | undefined> {
+  ): Promise<Data> {
     // Construct Interest, but without signing, so the parameter digest is not there
     const interestName = this.handler!.attachedPrefix!.append(...matched.name.comps);
     const interestArgs = [interestName] as Array<Interest.CtorArg>;
@@ -156,6 +158,11 @@ export class ExpressingPoint extends BaseNode {
     }
     // TODO: FwHint is not supported for now. Who should provide this info?
     const lifetimeMs = opts.lifetimeMs ?? this.config.lifetimeMs;
+    if (lifetimeMs === undefined) {
+      throw new Error(
+        `[${this.describe}:need] Unable to generate Interest when lifetimeMs is missing in config.`,
+      );
+    }
     interestArgs.push(Interest.Lifetime(lifetimeMs));
     const interest = new Interest(...interestArgs);
 
@@ -185,7 +192,7 @@ export class ExpressingPoint extends BaseNode {
     // Express the Interest if not surpressed
     const supressInterest = opts.supressInterest ?? this.config.supressInterest;
     if (supressInterest) {
-      return undefined;
+      throw new Error(`Interest surpressed: ${interestName.toString()} @${this.describe}`);
     }
 
     const data = await this.handler!.endpoint!.consume(interest, {
@@ -193,7 +200,7 @@ export class ExpressingPoint extends BaseNode {
       signal: opts.abortSignal as any,
       retx: this.config.retx,
       // Note: the verifier is at the LeafNode if CanBePrefix is set
-      verifier: this.handler!.getVerifier(deadline),
+      verifier: opts.verifier ?? this.handler!.getVerifier(deadline),
     });
 
     // (no await) Save (cache) the data in the storage

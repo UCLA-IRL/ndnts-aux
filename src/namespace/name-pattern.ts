@@ -95,7 +95,7 @@ export const makeStep = (
     return pattern;
   } else {
     const value = mapping[pattern.tag];
-    if (!value) {
+    if (value === undefined) {
       throw new Error(`The pattern variable ${pattern.tag} does not exist in the mapping.`);
     }
     const v = typeof value === 'number' ? Encoder.encode(NNI(value)) : value;

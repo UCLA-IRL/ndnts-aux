@@ -1,6 +1,6 @@
 import { Endpoint, Producer } from '@ndn/endpoint';
 import { Data, Interest, Name, type Verifier } from '@ndn/packet';
-// import * as namePattern from './name-pattern.ts';
+import * as namePattern from './name-pattern.ts';
 import * as schemaTree from './schema-tree.ts';
 import { type BaseNode } from './base-node.ts';
 
@@ -92,6 +92,21 @@ export class NtSchema implements NamespaceHandler, AsyncDisposable {
     });
     this._endpoint = undefined;
     this._attachedPrefix = undefined;
+  }
+
+  public set<Args extends Array<unknown>, T extends BaseNode>(
+    path: string | namePattern.Pattern,
+    klass: new (...args: Args) => T,
+    ...args: Args
+  ): schemaTree.Node<T> {
+    if (typeof path === 'string') {
+      path = namePattern.fromString(path);
+    }
+    return schemaTree.touch<BaseNode, T>(
+      this.tree,
+      path,
+      new klass(...args),
+    );
   }
 
   async [Symbol.asyncDispose]() {

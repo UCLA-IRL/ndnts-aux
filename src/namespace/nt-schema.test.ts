@@ -8,11 +8,8 @@ import { Ed25519, generateSigningKey } from '@ndn/keychain';
 import { NtSchema, VerifyResult } from './nt-schema.ts';
 import { InMemoryStorage } from '../storage/mod.ts';
 import { LeafNode } from './leaf-node.ts';
-import * as namePattern from './name-pattern.ts';
 import * as Tree from './schema-tree.ts';
-import { BaseNode } from './base-node.ts';
 
-const { pattern } = namePattern;
 export const b = ([value]: TemplateStringsArray) => new TextEncoder().encode(value);
 
 Deno.test('NtSchema.1 Basic Interest and Data', async () => {
@@ -25,17 +22,12 @@ Deno.test('NtSchema.1 Basic Interest and Data', async () => {
 
   // NTSchema side
   const schema = new NtSchema();
-  const leaf = new LeafNode({
+  const leafNode = schema.set('/records/<8=recordId:string>', LeafNode, {
     lifetimeMs: 100,
     freshnessMs: 60000,
     signer: digestSigning,
   });
-  const leafNode = Tree.touch<BaseNode, LeafNode>(
-    schema.tree,
-    pattern`/records/<8=recordId:string>`,
-    leaf,
-  );
-  leaf.onVerify.addListener(async ({ pkt }) => {
+  leafNode.resource!.onVerify.addListener(async ({ pkt }) => {
     try {
       await digestSigning.verify(pkt);
       return VerifyResult.Pass;
@@ -43,7 +35,7 @@ Deno.test('NtSchema.1 Basic Interest and Data', async () => {
       return VerifyResult.Fail;
     }
   });
-  leaf.onInterest.addListener(async () => {
+  leafNode.resource!.onInterest.addListener(async () => {
     const data3 = new Data(
       name`${appPrefix}/records/8=rec3`,
       Data.FreshnessPeriod(60000),
@@ -113,17 +105,12 @@ Deno.test('NtSchema.2 Data Storage', async () => {
   // NTSchema side
   const schema = new NtSchema();
   const storageA = new InMemoryStorage();
-  const leaf = new LeafNode({
+  const leafNode = schema.set('/records/<8=recordId:string>', LeafNode, {
     lifetimeMs: 100,
     freshnessMs: 60000,
     signer: digestSigning,
   });
-  const leafNode = Tree.touch<BaseNode, LeafNode>(
-    schema.tree,
-    pattern`/records/<8=recordId:string>`,
-    leaf,
-  );
-  leaf.onVerify.addListener(async ({ pkt }) => {
+  leafNode.resource!.onVerify.addListener(async ({ pkt }) => {
     try {
       await digestSigning.verify(pkt);
       return VerifyResult.Pass;
@@ -131,8 +118,8 @@ Deno.test('NtSchema.2 Data Storage', async () => {
       return VerifyResult.Fail;
     }
   });
-  leaf.onSaveStorage.addListener(({ data, wire }) => storageA.set(data.name.toString(), wire));
-  leaf.onSearchStorage.addListener(async ({ interest }) => {
+  leafNode.resource!.onSaveStorage.addListener(({ data, wire }) => storageA.set(data.name.toString(), wire));
+  leafNode.resource!.onSearchStorage.addListener(async ({ interest }) => {
     const wire = await storageA.get(interest.name.toString());
     if (wire) {
       return Decoder.decode(wire, Data);
@@ -200,17 +187,12 @@ Deno.test('NtSchema.3 Verification', async () => {
 
   // NTSchema side
   const schema = new NtSchema();
-  const leaf = new LeafNode({
+  const leafNode = schema.set('/records/<8=recordId:string>', LeafNode, {
     lifetimeMs: 100,
     freshnessMs: 60000,
     signer: digestSigning,
   });
-  const leafNode = Tree.touch<BaseNode, LeafNode>(
-    schema.tree,
-    pattern`/records/<8=recordId:string>`,
-    leaf,
-  );
-  leaf.onVerify.addListener(async ({ pkt, prevResult }) => {
+  leafNode.resource!.onVerify.addListener(async ({ pkt, prevResult }) => {
     if (pkt.sigInfo?.type === SigType.Sha256) {
       try {
         await digestSigning.verify(pkt);
@@ -222,7 +204,7 @@ Deno.test('NtSchema.3 Verification', async () => {
       return prevResult;
     }
   });
-  leaf.onVerify.addListener(async ({ pkt, prevResult }) => {
+  leafNode.resource!.onVerify.addListener(async ({ pkt, prevResult }) => {
     if (pkt.sigInfo?.type === SigType.Ed25519) {
       try {
         await pubKey.verify(pkt);

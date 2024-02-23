@@ -17,8 +17,8 @@ export interface LeafNodeEvents extends ExpressingPointEvents {
 }
 
 export type LeafNodeOpts = ExpressingPointOpts & {
-  freshnessMs: number;
-  signer: Signer;
+  freshnessMs?: number;
+  signer?: Signer;
   validityMs?: number;
   contentType?: number;
 };
@@ -29,8 +29,9 @@ export class LeafNode extends ExpressingPoint {
 
   constructor(
     public readonly config: LeafNodeOpts,
+    describe?: string,
   ) {
-    super(config);
+    super(config, describe);
   }
 
   public override async storeData(
@@ -58,21 +59,29 @@ export class LeafNode extends ExpressingPoint {
       signer?: Signer;
       finalBlockId?: Component;
     } = {},
-  ): Promise<Uint8Array> {
+  ): Promise<Data> {
     const payload = content instanceof Uint8Array ? content : new TextEncoder().encode(content);
+
+    const signer = opts.signer ?? this.config.signer;
+    const freshnessMs = opts.freshnessMs ?? this.config.freshnessMs;
+    if (!signer || freshnessMs === undefined) {
+      throw new Error(
+        `[${this.describe}:provide] Unable to generate Data when signer or freshnessMs is missing in config.`,
+      );
+    }
 
     // Create Data
     const dataName = this.handler!.attachedPrefix!.append(...matched.name.comps);
     const data = new Data(
       dataName,
       Data.ContentType(this.config.contentType ?? 0), // Default is BLOB
-      Data.FreshnessPeriod(opts.freshnessMs ?? this.config.freshnessMs),
+      Data.FreshnessPeriod(freshnessMs),
       payload,
     );
     if (opts.finalBlockId) {
       data.finalBlockId = opts.finalBlockId;
     }
-    await this.config.signer.sign(data);
+    await signer.sign(data);
 
     const wire = Encoder.encode(data);
     const validity = this.config.validityMs ?? 876000 * 3600000;
@@ -86,6 +95,6 @@ export class LeafNode extends ExpressingPoint {
       validUntil,
     });
 
-    return wire;
+    return data;
   }
 }

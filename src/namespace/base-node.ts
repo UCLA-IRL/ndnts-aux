@@ -15,6 +15,10 @@ export class BaseNode {
   public readonly onDetach = new EventChain<BaseNodeEvents['detach']>();
   protected handler: NamespaceHandler | undefined = undefined;
 
+  constructor(public readonly describe?: string) {
+    this.describe ??= this.constructor.name;
+  }
+
   public get namespaceHandler() {
     return this.handler;
   }
