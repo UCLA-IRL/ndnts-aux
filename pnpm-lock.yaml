@@ -12,14 +12,17 @@ dependencies:
     specifier: ^5.0.1
     version: 5.0.1
   jose:
-    specifier: ^5.2.1
-    version: 5.2.1
+    specifier: ^5.2.2
+    version: 5.2.2
   tslib:
     specifier: ^2.6.2
     version: 2.6.2
   type-fest:
-    specifier: ^4.10.2
-    version: 4.10.2
+    specifier: ^4.10.3
+    version: 4.10.3
+  wait-your-turn:
+    specifier: ^1.0.1
+    version: 1.0.1
   y-protocols:
     specifier: ^1.0.6
     version: 1.0.6(yjs@13.6.12)
@@ -113,15 +116,15 @@ packages:
   /@types/imap@0.8.40:
     resolution: {integrity: sha512-kWFwOc88CGwWZlHqCnZiceS6EralsAHdjpQyk1+fIA875NQdIHvLpdD5NU3Pi1yZ8FKFdOF81UDNAo8/XS6HiQ==}
     dependencies:
-      '@types/node': 20.11.17
+      '@types/node': 20.11.20
     dev: true
 
   /@types/minimalistic-assert@1.0.3:
     resolution: {integrity: sha512-Ku87cam4YxiXcEpeUemo+vO8QWGQ7U2CwEEcLcYFhxG8b4CK8gWxSX/oWjePWKwqPaWWxxVqXAdAjGdlJtVzDA==}
     dev: true
 
-  /@types/node@20.11.17:
-    resolution: {integrity: sha512-QmgQZGWu1Yw9TDyAP9ZzpFJKynYNeOvwMJmaxABfieQoVoiVOS6MN1WSpqpRcbeA5+RW82kraAVxCCJg+780Qw==}
+  /@types/node@20.11.20:
+    resolution: {integrity: sha512-7/rR21OS+fq8IyHTgtLkDK949uzsa6n8BkziAKtPVpugIkO6D+/ooXMvzXxDnZrmtXVfjb1bKQafYpb8s89LOg==}
     dependencies:
       undici-types: 5.26.5
     dev: true
@@ -129,7 +132,7 @@ packages:
   /@types/nodemailer@6.4.14:
     resolution: {integrity: sha512-fUWthHO9k9DSdPCSPRqcu6TWhYyxTBg382vlNIttSe9M7XfsT06y0f24KHXtbnijPGGRIcVvdKHTNikOI6qiHA==}
     dependencies:
-      '@types/node': 20.11.17
+      '@types/node': 20.11.20
     dev: true
 
   /@types/retry@0.12.5:
@@ -147,7 +150,7 @@ packages:
   /@types/ws@8.5.10:
     resolution: {integrity: sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==}
     dependencies:
-      '@types/node': 20.11.17
+      '@types/node': 20.11.20
     dev: true
 
   /@yoursunny/asn1@0.0.20200718:
@@ -286,7 +289,7 @@ packages:
       human-signals: 5.0.0
       is-stream: 3.0.0
       merge-stream: 2.0.0
-      npm-run-path: 5.2.0
+      npm-run-path: 5.3.0
       onetime: 6.0.0
       signal-exit: 4.1.0
       strip-final-newline: 3.0.0
@@ -314,8 +317,8 @@ packages:
     hasBin: true
     dev: true
 
-  /hirestime@7.0.3:
-    resolution: {integrity: sha512-XmjAwwjLJlDjVVljWht/+Pb6vTfs6A0z2ZpaCkVmzEkwiZcO/+lbj1DsxpsDvkVprYHCmNBxTr7tUohdlxG2Hw==}
+  /hirestime@7.0.4:
+    resolution: {integrity: sha512-+MBUB+eJCfsLnl/DOeQTUi/GgS+Ottk5/pR6pDN7HJNOkMOHMMmmvNmQhes1zevzVi6xiulsY8ZnPrDZEcXXxg==}
     engines: {node: '>=6.0'}
     dev: true
 
@@ -411,8 +414,8 @@ packages:
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
     dev: true
 
-  /jose@5.2.1:
-    resolution: {integrity: sha512-qiaQhtQRw6YrOaOj0v59h3R6hUY9NvxBmmnMfKemkqYmBB0tEc97NbLP7ix44VP5p9/0YHG8Vyhzuo5YBNwviA==}
+  /jose@5.2.2:
+    resolution: {integrity: sha512-/WByRr4jDcsKlvMd1dRJnPfS1GVO3WuKyaurJ/vvXcOaUQO8rnNObCQMlv/5uCceVQIq5Q4WLF44ohsdiTohdg==}
     dev: false
 
   /json-schema-traverse@1.0.0:
@@ -423,8 +426,8 @@ packages:
     resolution: {integrity: sha512-y+SqErxb8h7nE/fiEX07jsbuhrpO9lL8eca7/Y1nuWV2moNlXhyd59iDGcRf6moVyDMbmTNzL40SUyrFU/yDpg==}
     dev: true
 
-  /lib0@0.2.88:
-    resolution: {integrity: sha512-KyroiEvCeZcZEMx5Ys+b4u4eEBbA1ch7XUaBhYpwa/nPMrzTjUhI4RfcytmQfYoTBPcdyx+FX6WFNIoNuJzJfQ==}
+  /lib0@0.2.89:
+    resolution: {integrity: sha512-5j19vcCjsQhvLG6mcDD+nprtJUCbmqLz5Hzt5xgi9SV6RIW/Dty7ZkVZHGBuPOADMKjQuKDvuQTH495wsmw8DQ==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
@@ -510,13 +513,18 @@ packages:
     requiresBuild: true
     dev: true
 
+  /nodemailer@6.9.10:
+    resolution: {integrity: sha512-qtoKfGFhvIFW5kLfrkw2R6Nm6Ur4LNUMykyqu6n9BRKJuyQrqEGwdXXUAbwWEKt33dlWUGXb7rzmJP/p4+O+CA==}
+    engines: {node: '>=6.0.0'}
+    dev: true
+
   /nodemailer@6.9.9:
     resolution: {integrity: sha512-dexTll8zqQoVJEZPwQAKzxxtFn0qTnjdQTchoU6Re9BUUGBJiOy3YMn/0ShTW6J5M0dfQ1NeDeRTTl4oIWgQMA==}
     engines: {node: '>=6.0.0'}
     dev: true
 
-  /npm-run-path@5.2.0:
-    resolution: {integrity: sha512-W4/tgAXFqFA0iL7fk0+uQ3g7wkL8xJmx3XdK0VGb4cHW//eZTtKGvFBBoRKVTpY7n6ze4NL9ly7rgXcHufqXKg==}
+  /npm-run-path@5.3.0:
+    resolution: {integrity: sha512-ppwTtiJZq0O/ai0z7yfudtBpWIoxM8yE6nHi1X47eFR2EWORqfbu6CnPlNsjeN683eT0qG6H/Pyf9fCcvjnnnQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       path-key: 4.0.0
@@ -663,8 +671,8 @@ packages:
   /tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
-  /type-fest@4.10.2:
-    resolution: {integrity: sha512-anpAG63wSpdEbLwOqH8L84urkL6PiVIov3EMmgIhhThevh9aiMQov+6Btx0wldNcvm4wV+e2/Rt1QdDwKHFbHw==}
+  /type-fest@4.10.3:
+    resolution: {integrity: sha512-JLXyjizi072smKGGcZiAJDCNweT8J+AuRxmPZ1aG7TERg4ijx9REl8CNhbr36RV4qXqL1gO1FF9HL8OkVmmrsA==}
     engines: {node: '>=16'}
 
   /typescript-event-target@1.1.0:
@@ -703,6 +711,10 @@ packages:
       semver: 5.3.0
     dev: true
 
+  /wait-your-turn@1.0.1:
+    resolution: {integrity: sha512-UejbIY32KXhghXGwH4J2pTKUNvgdrCjdDGrtrdfHHJUAwXCok1l9ptEp4n13lg6PuyQIgxPGkWyKeJvvKeAqsA==}
+    dev: false
+
   /which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
     engines: {node: '>= 8'}
@@ -732,7 +744,7 @@ packages:
     peerDependencies:
       yjs: ^13.0.0
     dependencies:
-      lib0: 0.2.88
+      lib0: 0.2.89
       yjs: 13.6.12
     dev: false
 
@@ -740,7 +752,7 @@ packages:
     resolution: {integrity: sha512-KOT8ILoyVH2f/PxPadeu5kVVS055D1r3x1iFfJVJzFdnN98pVGM8H07NcKsO+fG3F7/0tf30Vnokf5YIqhU/iw==}
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
     dependencies:
-      lib0: 0.2.88
+      lib0: 0.2.89
     dev: false
 
   '@ndnts-nightly.ndn.today/endpoint.tgz':
@@ -764,7 +776,7 @@ packages:
       '@ndn/packet': '@ndnts-nightly.ndn.today/packet.tgz'
       '@ndn/util': '@ndnts-nightly.ndn.today/util.tgz'
       '@types/retry': 0.12.5
-      hirestime: 7.0.3
+      hirestime: 7.0.4
       it-pushable: 3.2.3
       mnemonist: 0.39.8
       retry: 0.13.1
@@ -788,7 +800,7 @@ packages:
       mnemonist: 0.39.8
       throat: 6.0.2
       tslib: 2.6.2
-      type-fest: 4.10.2
+      type-fest: 4.10.3
     dev: true
 
   '@ndnts-nightly.ndn.today/l3face.tgz':
@@ -807,7 +819,7 @@ packages:
       retry: 0.13.1
       streaming-iterables: 8.0.1
       tslib: 2.6.2
-      type-fest: 4.10.2
+      type-fest: 4.10.3
       typescript-event-target: 1.1.0
     dev: true
 
@@ -851,10 +863,10 @@ packages:
       ajv: 8.12.0
       b64-lite: 1.4.0
       imap-emails: 1.0.4(tslib@2.6.2)
-      nodemailer: 6.9.9
+      nodemailer: 6.9.10
       p-timeout: 6.1.2
       tslib: 2.6.2
-      type-fest: 4.10.2
+      type-fest: 4.10.3
       typescript-event-target: 1.1.0
     dev: true
 
@@ -898,7 +910,7 @@ packages:
       event-iterator: 2.0.0
       p-event: 6.0.0
       tslib: 2.6.2
-      type-fest: 4.10.2
+      type-fest: 4.10.3
       url-format-lax: 2.0.0
       url-parse-lax: 5.0.0
     dev: true
@@ -913,7 +925,7 @@ packages:
       buffer-compare: 1.1.1
       mnemonist: 0.39.8
       tslib: 2.6.2
-      type-fest: 4.10.2
+      type-fest: 4.10.3
     dev: true
 
   '@ndnts-nightly.ndn.today/rdr.tgz':
@@ -960,7 +972,7 @@ packages:
       '@ndn/packet': '@ndnts-nightly.ndn.today/packet.tgz'
       '@ndn/util': '@ndnts-nightly.ndn.today/util.tgz'
       event-iterator: 2.0.0
-      hirestime: 7.0.3
+      hirestime: 7.0.4
       mnemonist: 0.39.8
       p-defer: 4.0.0
       p-event: 6.0.0
@@ -985,7 +997,7 @@ packages:
       '@ndn/util': '@ndnts-nightly.ndn.today/util.tgz'
       streaming-iterables: 8.0.1
       tslib: 2.6.2
-      type-fest: 4.10.2
+      type-fest: 4.10.3
       typescript-event-target: 1.1.0
     dev: true
 
@@ -1008,7 +1020,7 @@ packages:
       '@ndn/util': '@ndnts-nightly.ndn.today/util.tgz'
       mnemonist: 0.39.8
       tslib: 2.6.2
-      type-fest: 4.10.2
+      type-fest: 4.10.3
     dev: true
 
   '@ndnts-nightly.ndn.today/util.tgz':
@@ -1023,7 +1035,7 @@ packages:
       minimalistic-assert: 1.0.1
       streaming-iterables: 8.0.1
       tslib: 2.6.2
-      type-fest: 4.10.2
+      type-fest: 4.10.3
     dev: true
 
   '@ndnts-nightly.ndn.today/ws-transport.tgz':
