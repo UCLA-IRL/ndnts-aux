@@ -36,11 +36,13 @@ export class BaseNode {
   public verifyPacket(
     matched: schemaTree.StrictMatch<BaseNode>,
     pkt: Verifier.Verifiable,
-    deadline: number,
+    deadline: number | undefined,
+    context: Record<string, unknown>,
   ) {
     console.warn(`Silently drop unverified packet ${matched.name.toString()}`);
     pkt;
     deadline;
+    context;
     return Promise.resolve(false);
   }
 

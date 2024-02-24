@@ -16,7 +16,7 @@ export enum VerifyResult {
 export interface NamespaceHandler {
   get endpoint(): Endpoint | undefined;
   get attachedPrefix(): Name | undefined;
-  getVerifier(deadline: number): Verifier;
+  getVerifier(deadline: number | undefined, verificationContext?: Record<string, unknown>): Verifier;
   storeData(data: Data): Promise<void>;
 }
 
@@ -42,14 +42,14 @@ export class NtSchema implements NamespaceHandler, AsyncDisposable {
     return schemaTree.match(this.tree, name.slice(prefixLength));
   }
 
-  public getVerifier(deadline: number): Verifier {
+  public getVerifier(deadline: number | undefined, verificationContext?: Record<string, unknown>): Verifier {
     return {
       verify: async (pkt: Verifier.Verifiable) => {
         const matched = this.match(pkt.name);
         if (!matched || !matched.resource) {
           throw new Error('Unexpected packet');
         }
-        if (!await schemaTree.call(matched, 'verifyPacket', pkt, deadline)) {
+        if (!await schemaTree.call(matched, 'verifyPacket', pkt, deadline, verificationContext ?? {})) {
           throw new Error('Unverified packet');
         }
       },

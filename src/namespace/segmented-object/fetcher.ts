@@ -6,7 +6,7 @@ import * as Pattern from '../name-pattern.ts';
 import * as Schema from '../schema-tree.ts';
 // @deno-types="@ndn/segmented-object/lib/fetch/logic.d.ts"
 import { FetchLogic } from '@ndn/segmented-object/lib/fetch/logic_browser.js';
-import { LeafNode } from '../mod.ts';
+import { LeafNode } from '../leaf-node.ts';
 import { NNI } from '@ndn/tlv';
 import { EventChain } from '../../utils/mod.ts';
 

@@ -9,7 +9,7 @@ import { NtSchema, VerifyResult } from '../nt-schema.ts';
 import { InMemoryStorage } from '../../storage/mod.ts';
 import { LeafNode } from '../leaf-node.ts';
 import * as Tree from '../schema-tree.ts';
-import { SegmentedObject } from './segmented-object.ts';
+import { SegmentedObjectNode } from './segmented-object.ts';
 
 export const b = ([value]: TemplateStringsArray) => new TextEncoder().encode(value);
 
@@ -32,7 +32,7 @@ Deno.test('SegmentedObject.1 Basic fetching', async () => {
       return VerifyResult.Fail;
     }
   });
-  const segObjNode = schema.set('/object', SegmentedObject, {
+  const segObjNode = schema.set('/object', SegmentedObjectNode, {
     leafNode,
     lifetimeAfterRto: 100,
   });
@@ -98,7 +98,7 @@ Deno.test('SegmentedObject.2 Basic provide', async () => {
       return undefined;
     }
   });
-  const segObjNode = schema.set('/object', SegmentedObject, {
+  const segObjNode = schema.set('/object', SegmentedObjectNode, {
     leafNode,
     lifetimeAfterRto: 100,
   });

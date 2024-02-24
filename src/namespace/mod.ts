@@ -5,3 +5,4 @@ export * from './nt-schema.ts';
 export * from './base-node.ts';
 export * from './expressing-point.ts';
 export * from './leaf-node.ts';
+export * from './segmented-object/segmented-object.ts';

@@ -8,7 +8,7 @@ import { EventIterator } from 'event-iterator';
 import { BaseNode } from '../base-node.ts';
 import * as Pattern from '../name-pattern.ts';
 import * as Schema from '../schema-tree.ts';
-import { LeafNode } from '../mod.ts';
+import { LeafNode } from '../leaf-node.ts';
 import { Fetcher, FetcherOptions, PipelineOptions } from './fetcher.ts';
 
 export interface Result extends PromiseLike<Uint8Array>, AsyncIterable<Data> {
@@ -143,7 +143,7 @@ export type SegmentedObjectOpts = {
   pipelineOpts?: PipelineOptions;
 };
 
-export class SegmentedObject extends BaseNode {
+export class SegmentedObjectNode extends BaseNode {
   lifetimeAfterRto: number;
   segmentPattern: string;
   segmentType: number;
@@ -163,7 +163,7 @@ export class SegmentedObject extends BaseNode {
   }
 
   public async provide(
-    matched: Schema.StrictMatch<SegmentedObject>,
+    matched: Schema.StrictMatch<SegmentedObjectNode>,
     source: ChunkSource,
     opts: {
       freshnessMs?: number;
@@ -190,7 +190,7 @@ export class SegmentedObject extends BaseNode {
   }
 
   public need(
-    matched: Schema.StrictMatch<SegmentedObject>,
+    matched: Schema.StrictMatch<SegmentedObjectNode>,
     opts: {
       abortSignal?: AbortSignal;
       lifetimeAfterRto?: number;

@@ -17,9 +17,10 @@ export interface ExpressingPointEvents extends BaseNodeEvents {
   verify(
     args: {
       target: schemaTree.StrictMatch<ExpressingPoint>;
-      deadline: number;
+      deadline: number | undefined;
       pkt: Verifier.Verifiable;
       prevResult: VerifyResult;
+      context: Record<string, unknown>;
     },
   ): Promise<VerifyResult>;
 
@@ -69,7 +70,8 @@ export class ExpressingPoint extends BaseNode {
   public override async verifyPacket(
     matched: schemaTree.StrictMatch<ExpressingPoint>,
     pkt: Verifier.Verifiable,
-    deadline: number,
+    deadline: number | undefined,
+    context: Record<string, unknown>,
   ) {
     const verifyResult = await this.onVerify.chain(
       VerifyResult.Unknown,
@@ -80,7 +82,7 @@ export class ExpressingPoint extends BaseNode {
             prevResult: ret,
           }],
         ),
-      { target: matched, pkt, deadline, prevResult: VerifyResult.Unknown },
+      { target: matched, pkt, deadline, prevResult: VerifyResult.Unknown, context },
     );
     return verifyResult >= VerifyResult.Pass;
   }
@@ -103,7 +105,7 @@ export class ExpressingPoint extends BaseNode {
     // Signed Interests are required to carry AppParam, but may be zero length.
     // To guarantee everything is good in case the underlying library returns `undefined` when zero length, check both.
     if (interest.appParameters || interest.sigInfo) {
-      if (!await this.verifyPacket(matched, interest, deadline)) {
+      if (!await this.verifyPacket(matched, interest, deadline, {})) {
         // Unverified Interest. Drop
         return;
       }
@@ -136,6 +138,7 @@ export class ExpressingPoint extends BaseNode {
       lifetimeMs?: number;
       deadline?: number;
       verifier?: Verifier;
+      verificationContext?: Record<string, unknown>;
     } = {},
   ): Promise<Data> {
     // Construct Interest, but without signing, so the parameter digest is not there
@@ -200,7 +203,7 @@ export class ExpressingPoint extends BaseNode {
       signal: opts.abortSignal as any,
       retx: this.config.retx,
       // Note: the verifier is at the LeafNode if CanBePrefix is set
-      verifier: opts.verifier ?? this.handler!.getVerifier(deadline),
+      verifier: opts.verifier ?? this.handler!.getVerifier(deadline, opts.verificationContext),
     });
 
     // (no await) Save (cache) the data in the storage
