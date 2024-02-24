@@ -3,6 +3,7 @@ import { Forwarder } from '@ndn/fw';
 import { Data, digestSigning, Name, type Signer, type Verifier } from '@ndn/packet';
 import { GenericNumber } from '@ndn/naming-convention2';
 import { Encoder } from '@ndn/tlv';
+import { SyncUpdate } from '@ndn/sync-api';
 import { assert, hex } from '../dep.ts';
 import { AtLeastOnceDelivery, SyncDelivery } from './deliveries.ts';
 import { AsyncDisposableStack, name, Responder } from '../utils/mod.ts';
@@ -208,6 +209,126 @@ Deno.test('Alo.2 No missing due to out-of-order', async () => {
   });
   assert.assertEquals(eventSet[3], {
     content: new TextEncoder().encode('D'),
+    origin: 1,
+    receiver: 0,
+  });
+});
+
+Deno.test('Alo.2.1 Concurrent onUpdates causing gap in the middle', async () => {
+  let eventSet;
+  {
+    const { promise: stopSignal1, resolve: stop1 } = Promise.withResolvers<void>();
+    const { promise: stopSignal2, resolve: stop2 } = Promise.withResolvers<void>();
+    const { promise: stopSignal3, resolve: stop3 } = Promise.withResolvers<void>();
+    await using tester = new DeliveryTester(2, () => {
+      if (tester.events.length === 4) {
+        stop1();
+      } else if (tester.events.length === 6) {
+        stop2();
+      } else if (tester.events.length === 8) {
+        stop3();
+      }
+      return Promise.resolve();
+    });
+    await tester.start(3000);
+
+    // Do not use alo1 for this time
+    await tester.alos[1].destroy();
+
+    // Then generate two normal updates. They are fetched first. (No 7, 8)
+    await tester.dispositData(1, 7, new TextEncoder().encode('G'));
+    await tester.dispositData(1, 8, new TextEncoder().encode('H'));
+    // Make some initial data (No 1, 2)
+    await tester.dispositData(1, 1, new TextEncoder().encode('A'));
+    await tester.dispositData(1, 2, new TextEncoder().encode('B'));
+
+    // Call onUpdate for 7-8 and 1-2
+    await tester.alos[0].handleSyncUpdate(
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 7, 8),
+    );
+    await tester.alos[0].handleSyncUpdate(
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 1, 2),
+    );
+
+    await stopSignal1;
+    // For now, the state must be in the middle
+    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}`), 2);
+    // But the data should be delivered
+    assert.assertEquals(tester.events.length, 4);
+
+    // Make up some missing data. (No 3, 5)
+    await tester.dispositData(1, 3, new TextEncoder().encode('C'));
+    await tester.dispositData(1, 5, new TextEncoder().encode('E'));
+    // Call onUpdate on each of them
+    await tester.alos[0].handleSyncUpdate(
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 3, 3),
+    );
+    await tester.alos[0].handleSyncUpdate(
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 5, 5),
+    );
+
+    await stopSignal2;
+    // For now, the state must move by 1
+    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}`), 3);
+
+    // Finally make up all missing data.
+    await tester.dispositData(1, 4, new TextEncoder().encode('D'));
+    await tester.dispositData(1, 6, new TextEncoder().encode('F'));
+    // Call onUpdate on each of them
+    await tester.alos[0].handleSyncUpdate(
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 4, 4),
+    );
+    await tester.alos[0].handleSyncUpdate(
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 6, 6),
+    );
+
+    await stopSignal3;
+    eventSet = tester.events;
+
+    // At last, the state should be updated
+    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}`), 8);
+  }
+
+  // Since it is unordered, we have to sort
+  eventSet.sort(compareEvent);
+  assert.assertEquals(eventSet.length, 8);
+  assert.assertEquals(eventSet[0], {
+    content: new TextEncoder().encode('A'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[1], {
+    content: new TextEncoder().encode('B'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[2], {
+    content: new TextEncoder().encode('C'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[3], {
+    content: new TextEncoder().encode('D'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[4], {
+    content: new TextEncoder().encode('E'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[5], {
+    content: new TextEncoder().encode('F'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[6], {
+    content: new TextEncoder().encode('G'),
+    origin: 1,
+    receiver: 0,
+  });
+  assert.assertEquals(eventSet[7], {
+    content: new TextEncoder().encode('H'),
     origin: 1,
     receiver: 0,
   });

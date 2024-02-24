@@ -19,6 +19,7 @@
     "url": "https://github.com/UCLA-IRL/ndnts-aux/issues"
   },
   "dependencies": {
+    "@ndn/sync-api": "https://ndnts-nightly.ndn.today/sync-api.tgz",
     "event-iterator": "^2.0.0",
     "eventemitter3": "^5.0.1",
     "jose": "^5.2.2",

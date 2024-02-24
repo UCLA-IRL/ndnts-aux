@@ -311,7 +311,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     for (; newSeq < lastSeen; newSeq++) {
       // This can be optimized with some data structure like C++ set, but not now.
       const dataName = updateBaseName.append(SequenceNum.create(newSeq + 1));
-      if (!this.storage.has(dataName.toString())) {
+      if (!await this.storage.has(dataName.toString())) {
         break;
       }
     }
