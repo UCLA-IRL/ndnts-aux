@@ -27,7 +27,7 @@
     "type-fest": "^4.10.3",
     "wait-your-turn": "^1.0.1",
     "y-protocols": "^1.0.6",
-    "yjs": "^13.6.12"
+    "yjs": "^13.6.14"
   },
   "devDependencies": {
     "@ndn/endpoint": "https://ndnts-nightly.ndn.today/endpoint.tgz",

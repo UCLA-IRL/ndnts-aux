@@ -6,7 +6,7 @@ import { Decoder, Encoder } from '@ndn/tlv';
 import { fetch as fetchSegments, TcpCubic } from '@ndn/segmented-object';
 import { getNamespace } from './namespace.ts';
 import { Storage } from '../storage/mod.ts';
-import { panic } from '../utils/panic.ts';
+import { LimitedCwnd, panic } from '../utils/mod.ts';
 
 export function encodeSyncState(state: StateVector): Uint8Array {
   return Encoder.encode(state);
@@ -242,9 +242,14 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     const continuation = fetchSegments(prefix, {
       segmentNumConvention: SequenceNum,
       segmentRange: [update.loSeqNum, update.hiSeqNum + 1],
-      retxLimit: 25,
+      retxLimit: 40,
       lifetimeAfterRto: 1000, // The true timeout timer is the RTO
-      ca: new TcpCubic(),
+      rtte: {
+        initRto: 1000,
+        minRto: 1000, // Minimal RTO is 1000
+        maxRto: 120000,
+      },
+      ca: new LimitedCwnd(new TcpCubic(), 10),
       verifier: this.verifier,
       endpoint: this.endpoint,
       // WARN: an abort controller is required! NDNts's fetcher cannot close itself even after
