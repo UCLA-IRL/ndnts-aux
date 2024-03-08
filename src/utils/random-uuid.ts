@@ -1,9 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 
 export const randomUUID = (): string => {
-  if (crypto && crypto.randomUUID) {
-    return crypto.randomUUID();
-  } else {
+  try {
+    if (globalThis.crypto && globalThis.crypto.randomUUID !== undefined) {
+      return crypto.randomUUID();
+    } else {
+      return uuidv4();
+    }
+  } catch {
     return uuidv4();
   }
 };
