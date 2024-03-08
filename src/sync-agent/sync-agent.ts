@@ -7,7 +7,7 @@ import { AtLeastOnceDelivery, LatestOnlyDelivery, UpdateEvent } from './deliveri
 import { getNamespace } from './namespace.ts';
 import { InMemoryStorage, Storage } from '../storage/mod.ts';
 import { StateVector } from '@ndn/svs';
-import { panic } from '../utils/panic.ts';
+import { panic, randomUUID } from '../utils/mod.ts';
 
 export type ChannelType = 'update' | 'blob' | 'status' | 'blobUpdate';
 const AllChannelValues = ['update', 'blob', 'status', 'blobUpdate'];
@@ -113,7 +113,7 @@ export class SyncAgent implements AsyncDisposable {
 
   private makeInnerData(channel: ChannelType, topic: string, content: Uint8Array) {
     const data = new Data(
-      new Name([channel, topic, crypto.randomUUID()]),
+      new Name([channel, topic, randomUUID()]),
       content,
     );
     return Encoder.encode(data);

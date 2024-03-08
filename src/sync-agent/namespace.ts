@@ -1,5 +1,6 @@
 import { type Component, Name } from '@ndn/packet';
 import { Keyword as KeywordComponent } from '@ndn/naming-convention2';
+import { randomUUID } from '../utils/mod.ts';
 
 let currentNamespace: SyncAgentNamespace | undefined = undefined;
 
@@ -97,7 +98,7 @@ function createDefaultNamespace(): SyncAgentNamespace {
       return '/8=local' + baseName.toString() + '/8=syncVector';
     },
     genBlobName(appPrefix: Name): Name {
-      return new Name([...appPrefix.comps, 'blob', crypto.randomUUID()]);
+      return new Name([...appPrefix.comps, 'blob', randomUUID()]);
     },
     syncKeyword: KeywordComponent.create('sync'),
     atLeastOnceKeyword: KeywordComponent.create('alo'),
