@@ -1,4 +1,5 @@
-import { Endpoint, Producer } from '@ndn/endpoint';
+import { produce, Producer } from '@ndn/endpoint';
+import type { Forwarder } from '@ndn/fw';
 import { Data, Interest, Name, type Verifier } from '@ndn/packet';
 import * as namePattern from './name-pattern.ts';
 import * as schemaTree from './schema-tree.ts';
@@ -14,7 +15,7 @@ export enum VerifyResult {
 }
 
 export interface NamespaceHandler {
-  get endpoint(): Endpoint | undefined;
+  get fw(): Forwarder | undefined;
   get attachedPrefix(): Name | undefined;
   getVerifier(deadline: number | undefined, verificationContext?: Record<string, unknown>): Verifier;
   storeData(data: Data): Promise<void>;
@@ -22,12 +23,12 @@ export interface NamespaceHandler {
 
 export class NtSchema implements NamespaceHandler, AsyncDisposable {
   public readonly tree = schemaTree.create<BaseNode>();
-  protected _endpoint: Endpoint | undefined;
+  protected _fw: Forwarder | undefined;
   protected _attachedPrefix: Name | undefined;
   protected _producer: Producer | undefined;
 
-  get endpoint() {
-    return this._endpoint;
+  get fw() {
+    return this._fw;
   }
 
   get attachedPrefix() {
@@ -71,17 +72,24 @@ export class NtSchema implements NamespaceHandler, AsyncDisposable {
     return undefined;
   }
 
-  public async attach(prefix: Name, endpoint: Endpoint) {
+  public async attach(prefix: Name, fw: Forwarder) {
+    if (this._fw !== undefined) {
+      if (this._fw !== fw) {
+        throw new Error('You cannot attach a running NTSchema to another forwarder');
+      }
+      return;
+    }
     this._attachedPrefix = prefix;
-    this._endpoint = endpoint;
+    this._fw = fw;
     await schemaTree.traverse(this.tree, {
       post: async (node, path) => await node.resource?.processAttach(path, this),
     });
 
-    this._producer = endpoint.produce(prefix, this.onInterest.bind(this), {
+    this._producer = produce(prefix, this.onInterest.bind(this), {
       describe: `NtSchema[${prefix.toString()}]`,
       routeCapture: false,
       announcement: prefix,
+      fw: fw,
     });
   }
 
@@ -90,7 +98,7 @@ export class NtSchema implements NamespaceHandler, AsyncDisposable {
     await schemaTree.traverse(this.tree, {
       pre: async (node) => await node.resource?.processDetach(),
     });
-    this._endpoint = undefined;
+    this._fw = undefined;
     this._attachedPrefix = undefined;
   }
 

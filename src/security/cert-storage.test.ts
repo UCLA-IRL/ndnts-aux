@@ -1,16 +1,8 @@
-import { Endpoint } from '@ndn/endpoint';
 import { Encoder } from '@ndn/tlv';
 import { Forwarder } from '@ndn/fw';
-import { Data, Interest } from '@ndn/packet';
-import {
-  Certificate,
-  CertNaming,
-  createSigner,
-  createVerifier,
-  ECDSA,
-  generateSigningKey,
-  ValidityPeriod,
-} from '@ndn/keychain';
+import * as endpoint from '@ndn/endpoint';
+import { Data, Interest, ValidityPeriod } from '@ndn/packet';
+import { Certificate, CertNaming, createSigner, createVerifier, ECDSA, generateSigningKey } from '@ndn/keychain';
 import { InMemoryStorage } from '../storage/mod.ts';
 import { CertStorage } from './cert-storage.ts';
 import { assert as assertMod } from '../dep.ts';
@@ -58,7 +50,6 @@ Deno.test('Known certificates', async () => {
   closers.use(storage);
   const fwAB = Forwarder.create();
   closers.defer(() => fwAB.close());
-  const endpoint = new Endpoint({ fw: fwAB });
   // const responder = new Responder(appPrefix, endpoint, storage);
   // closers.use(responder);
 
@@ -66,7 +57,7 @@ Deno.test('Known certificates', async () => {
   storage.set(ownCert.name.toString(), Encoder.encode(ownCert.data));
   storage.set(otherCert.name.toString(), Encoder.encode(otherCert.data));
 
-  const cs = await CertStorage.create(anchor, ownCert, storage, endpoint, new Uint8Array(ownPrvKeyBits), 800);
+  const cs = await CertStorage.create(anchor, ownCert, storage, fwAB, new Uint8Array(ownPrvKeyBits), 800);
 
   // await cs.verifier.verify(anchor.data);  // Unable to do so, since it is not signed with a Cert name.
   await cs.verifier.verify(ownCert.data);
@@ -122,8 +113,7 @@ Deno.test('Fetch missing certificate once', async () => {
   closers.use(storage2);
   const fwAB = Forwarder.create();
   closers.defer(() => fwAB.close());
-  const endpoint = new Endpoint({ fw: fwAB });
-  const responder = new Responder(appPrefix, endpoint, storage2);
+  const responder = new Responder(appPrefix, fwAB, storage2);
   closers.use(responder);
 
   storage.set(anchor.name.toString(), Encoder.encode(anchor.data));
@@ -131,7 +121,7 @@ Deno.test('Fetch missing certificate once', async () => {
   storage2.set(otherCert.name.toString(), Encoder.encode(otherCert.data));
   storage2.set(dataToFetch.name.toString(), Encoder.encode(dataToFetch));
 
-  const cs = await CertStorage.create(anchor, ownCert, storage, endpoint, new Uint8Array(ownPrvKeyBits), 800);
+  const cs = await CertStorage.create(anchor, ownCert, storage, fwAB, new Uint8Array(ownPrvKeyBits), 800);
 
   const fetchedData = await endpoint.consume(
     new Interest(
@@ -141,6 +131,7 @@ Deno.test('Fetch missing certificate once', async () => {
     ),
     {
       verifier: cs.verifier,
+      fw: fwAB,
     },
   );
   assertEquals(fetchedData.content, new TextEncoder().encode('Hello World'));
@@ -173,12 +164,11 @@ Deno.test('Properly sign packets', async () => {
   closers.use(storage);
   const fwAB = Forwarder.create();
   closers.defer(() => fwAB.close());
-  const endpoint = new Endpoint({ fw: fwAB });
 
   storage.set(anchor.name.toString(), Encoder.encode(anchor.data));
   storage.set(ownCert.name.toString(), Encoder.encode(ownCert.data));
 
-  const cs = await CertStorage.create(anchor, ownCert, storage, endpoint, new Uint8Array(ownPrvKeyBits), 800);
+  const cs = await CertStorage.create(anchor, ownCert, storage, fwAB, new Uint8Array(ownPrvKeyBits), 800);
 
   const dataToSign = new Data(
     name`/${appPrefix}/8=node-0/data`,
@@ -237,8 +227,7 @@ Deno.test('Reject unavailable certificate', async () => {
   closers.use(storage2);
   const fwAB = Forwarder.create();
   closers.defer(() => fwAB.close());
-  const endpoint = new Endpoint({ fw: fwAB });
-  const responder = new Responder(appPrefix, endpoint, storage2);
+  const responder = new Responder(appPrefix, fwAB, storage2);
   closers.use(responder);
 
   storage.set(anchor.name.toString(), Encoder.encode(anchor.data));
@@ -246,7 +235,7 @@ Deno.test('Reject unavailable certificate', async () => {
   // storage2.set(otherCert.name.toString(), Encoder.encode(otherCert.data));
   // Certificate is missing
 
-  const cs = await CertStorage.create(anchor, ownCert, storage, endpoint, new Uint8Array(ownPrvKeyBits), 800);
+  const cs = await CertStorage.create(anchor, ownCert, storage, fwAB, new Uint8Array(ownPrvKeyBits), 800);
   await assertRejects(async () => {
     await cs.verifier.verify(dataToFetch);
   }, 'Failed to reject not existing certificates');
@@ -311,8 +300,7 @@ Deno.test('Reject mutual loop', async () => {
   closers.use(storage2);
   const fwAB = Forwarder.create();
   closers.defer(() => fwAB.close());
-  const endpoint = new Endpoint({ fw: fwAB });
-  const responder = new Responder(appPrefix, endpoint, storage2);
+  const responder = new Responder(appPrefix, fwAB, storage2);
   closers.use(responder);
 
   storage.set(anchor.name.toString(), Encoder.encode(anchor.data));
@@ -321,7 +309,7 @@ Deno.test('Reject mutual loop', async () => {
   storage2.set(otherCert2.name.toString(), Encoder.encode(otherCert2.data));
   storage2.set(dataToFetch.name.toString(), Encoder.encode(dataToFetch));
 
-  const cs = await CertStorage.create(anchor, ownCert, storage, endpoint, new Uint8Array(ownPrvKeyBits), 800);
+  const cs = await CertStorage.create(anchor, ownCert, storage, fwAB, new Uint8Array(ownPrvKeyBits), 800);
   await assertRejects(async () => {
     await cs.verifier.verify(dataToFetch);
   }, 'Failed to reject mutually signed certificates');
@@ -374,15 +362,14 @@ Deno.test('Reject self-signed certificate', async () => {
   closers.use(storage2);
   const fwAB = Forwarder.create();
   closers.defer(() => fwAB.close());
-  const endpoint = new Endpoint({ fw: fwAB });
-  const responder = new Responder(appPrefix, endpoint, storage2);
+  const responder = new Responder(appPrefix, fwAB, storage2);
   closers.use(responder);
 
   storage.set(anchor.name.toString(), Encoder.encode(anchor.data));
   storage.set(ownCert.name.toString(), Encoder.encode(ownCert.data));
   storage2.set(otherCert.name.toString(), Encoder.encode(otherCert.data));
 
-  const cs = await CertStorage.create(anchor, ownCert, storage, endpoint, new Uint8Array(ownPrvKeyBits), 800);
+  const cs = await CertStorage.create(anchor, ownCert, storage, fwAB, new Uint8Array(ownPrvKeyBits), 800);
   await assertRejects(async () => {
     await cs.verifier.verify(dataToFetch);
   }, 'Failed to reject self-signed certificates');

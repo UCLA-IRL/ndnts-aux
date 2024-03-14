@@ -1,5 +1,5 @@
 import { Storage } from '../storage/mod.ts';
-import { Endpoint } from '@ndn/endpoint';
+import type { Forwarder } from '@ndn/fw';
 import type { Name, Signer, Verifier } from '@ndn/packet';
 import { encodeSyncState, parseSyncState, SyncAgent } from '../sync-agent/mod.ts';
 import { NdnSvsAdaptor, YjsStateManager } from '../adaptors/mod.ts';
@@ -9,7 +9,7 @@ export class Workspace implements AsyncDisposable {
   private constructor(
     public readonly nodeId: Name,
     public readonly persistStore: Storage,
-    public readonly endpoint: Endpoint,
+    public readonly fw: Forwarder,
     public readonly onReset: (() => void) | undefined,
     public readonly syncAgent: SyncAgent,
     public readonly yjsSnapshotMgr: YjsStateManager,
@@ -20,7 +20,7 @@ export class Workspace implements AsyncDisposable {
   public static async create(opts: {
     nodeId: Name;
     persistStore: Storage;
-    endpoint: Endpoint;
+    fw: Forwarder;
     rootDoc: Y.Doc;
     signer: Signer;
     verifier: Verifier;
@@ -40,7 +40,7 @@ export class Workspace implements AsyncDisposable {
     const syncAgent = await SyncAgent.create(
       opts.nodeId,
       opts.persistStore,
-      opts.endpoint,
+      opts.fw,
       opts.signer,
       opts.verifier,
       opts.onReset,
@@ -73,7 +73,7 @@ export class Workspace implements AsyncDisposable {
     return new Workspace(
       opts.nodeId,
       opts.persistStore,
-      opts.endpoint,
+      opts.fw,
       opts.onReset,
       syncAgent,
       yjsSnapshotMgr,

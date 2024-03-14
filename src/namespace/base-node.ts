@@ -1,4 +1,4 @@
-import { Endpoint } from '@ndn/endpoint';
+import type { Forwarder } from '@ndn/fw';
 import type { Data, Interest, Verifier } from '@ndn/packet';
 import * as namePattern from './name-pattern.ts';
 import * as schemaTree from './schema-tree.ts';
@@ -6,8 +6,8 @@ import { EventChain } from '../utils/event-chain.ts';
 import { NamespaceHandler } from './nt-schema.ts';
 
 export interface BaseNodeEvents {
-  attach(path: namePattern.Pattern, endpoint: Endpoint): Promise<void>;
-  detach(endpoint: Endpoint): Promise<void>;
+  attach(path: namePattern.Pattern, fw: Forwarder): Promise<void>;
+  detach(fw: Forwarder): Promise<void>;
 }
 
 export class BaseNode {
@@ -58,11 +58,11 @@ export class BaseNode {
   public async processAttach(path: namePattern.Pattern, handler: NamespaceHandler) {
     // All children's attach events are called
     this.handler = handler;
-    await this.onAttach.emit(path, handler.endpoint!);
+    await this.onAttach.emit(path, handler.fw!);
   }
 
   public async processDetach() {
-    await this.onDetach.emit(this.handler!.endpoint!);
+    await this.onDetach.emit(this.handler!.fw!);
     this.handler = undefined;
     // Then call children's detach
   }

@@ -1,6 +1,5 @@
 import { assert } from '../../dep.ts';
 import { AsyncDisposableStack, name, Responder } from '../../utils/mod.ts';
-import { Endpoint } from '@ndn/endpoint';
 import { Data, digestSigning } from '@ndn/packet';
 import { Encoder } from '@ndn/tlv';
 import { Bridge } from '@ndn/l3face';
@@ -14,8 +13,6 @@ export const b = ([value]: TemplateStringsArray) => new TextEncoder().encode(val
 Deno.test('Fetcher.1 Basic fetching', async () => {
   using bridge = Bridge.create({});
   const { fwA, fwB } = bridge;
-  const epA = new Endpoint({ fw: fwA });
-  const epB = new Endpoint({ fw: fwB });
   await using closers = new AsyncDisposableStack();
   const appPrefix = name`/prefix`;
 
@@ -30,13 +27,13 @@ Deno.test('Fetcher.1 Basic fetching', async () => {
       return VerifyResult.Fail;
     }
   });
-  await schema.attach(appPrefix, epA);
+  await schema.attach(appPrefix, fwA);
   closers.defer(async () => await schema.detach());
 
   // Responder side
   const storage = new InMemoryStorage();
   closers.use(storage);
-  const responder = new Responder(appPrefix, epB, storage);
+  const responder = new Responder(appPrefix, fwB, storage);
   closers.use(responder);
   const payloads = [b`SEG1 `, b`SEG2 `, b`SEG3;`];
   for (const [i, p] of payloads.entries()) {

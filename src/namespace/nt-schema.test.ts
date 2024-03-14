@@ -1,6 +1,6 @@
 import { assert } from '../dep.ts';
 import { AsyncDisposableStack, name, Responder } from '../utils/mod.ts';
-import { Endpoint } from '@ndn/endpoint';
+import { consume } from '@ndn/endpoint';
 import { Data, digestSigning, SigType } from '@ndn/packet';
 import { Decoder, Encoder } from '@ndn/tlv';
 import { Bridge } from '@ndn/l3face';
@@ -15,8 +15,6 @@ export const b = ([value]: TemplateStringsArray) => new TextEncoder().encode(val
 Deno.test('NtSchema.1 Basic Interest and Data', async () => {
   using bridge = Bridge.create({});
   const { fwA, fwB } = bridge;
-  const epA = new Endpoint({ fw: fwA });
-  const epB = new Endpoint({ fw: fwB });
   await using closers = new AsyncDisposableStack();
   const appPrefix = name`/prefix`;
 
@@ -44,13 +42,13 @@ Deno.test('NtSchema.1 Basic Interest and Data', async () => {
     await digestSigning.sign(data3);
     return data3;
   });
-  await schema.attach(appPrefix, epA);
+  await schema.attach(appPrefix, fwA);
   closers.defer(async () => await schema.detach());
 
   // Responder side
   const storage = new InMemoryStorage();
   closers.use(storage);
-  const responder = new Responder(appPrefix, epB, storage);
+  const responder = new Responder(appPrefix, fwB, storage);
   closers.use(responder);
   const data1 = new Data(
     name`${appPrefix}/records/8=rec1`,
@@ -85,8 +83,9 @@ Deno.test('NtSchema.1 Basic Interest and Data', async () => {
   assert.assertEquals(recved2.content, b`World.`);
 
   // Test NTSchema's producing data (on request, without storage)
-  const recved3 = await epB.consume(name`${appPrefix}/records/8=rec3`, {
+  const recved3 = await consume(name`${appPrefix}/records/8=rec3`, {
     verifier: digestSigning,
+    fw: fwB,
   });
   assert.assertExists(recved3);
   assert.assert(recved3.name.equals(name`${appPrefix}/records/8=rec3`));
@@ -97,8 +96,6 @@ Deno.test('NtSchema.1 Basic Interest and Data', async () => {
 Deno.test('NtSchema.2 Data Storage', async () => {
   using bridge = Bridge.create({});
   const { fwA, fwB } = bridge;
-  const epA = new Endpoint({ fw: fwA });
-  const epB = new Endpoint({ fw: fwB });
   await using closers = new AsyncDisposableStack();
   const appPrefix = name`/prefix`;
 
@@ -127,13 +124,13 @@ Deno.test('NtSchema.2 Data Storage', async () => {
       return undefined;
     }
   });
-  await schema.attach(appPrefix, epA);
+  await schema.attach(appPrefix, fwA);
   closers.defer(async () => await schema.detach());
 
   // Responder side
   const storageB = new InMemoryStorage();
   closers.use(storageB);
-  const responder = new Responder(appPrefix, epB, storageB);
+  const responder = new Responder(appPrefix, fwB, storageB);
   closers.use(responder);
   const data1 = new Data(
     name`${appPrefix}/records/8=rec1`,
@@ -149,8 +146,9 @@ Deno.test('NtSchema.2 Data Storage', async () => {
     'provide',
     b`World.`,
   );
-  const received = await epB.consume(name`${appPrefix}/records/8=rec2`, {
+  const received = await consume(name`${appPrefix}/records/8=rec2`, {
     verifier: digestSigning,
+    fw: fwB,
   });
   assert.assertExists(received);
   assert.assert(received.name.equals(name`${appPrefix}/records/8=rec2`));
@@ -178,8 +176,6 @@ Deno.test('NtSchema.2 Data Storage', async () => {
 Deno.test('NtSchema.3 Verification', async () => {
   using bridge = Bridge.create({});
   const { fwA, fwB } = bridge;
-  const epA = new Endpoint({ fw: fwA });
-  const epB = new Endpoint({ fw: fwB });
   await using closers = new AsyncDisposableStack();
   const appPrefix = name`/prefix`;
   const [prvKey, pubKey] = await generateSigningKey(/*identity*/ appPrefix, Ed25519);
@@ -216,13 +212,13 @@ Deno.test('NtSchema.3 Verification', async () => {
       return prevResult;
     }
   });
-  await schema.attach(appPrefix, epA);
+  await schema.attach(appPrefix, fwA);
   closers.defer(async () => await schema.detach());
 
   // Responder side
   const storage = new InMemoryStorage();
   closers.use(storage);
-  const responder = new Responder(appPrefix, epB, storage);
+  const responder = new Responder(appPrefix, fwB, storage);
   closers.use(responder);
   const data1 = new Data(
     name`${appPrefix}/records/8=rec1`,

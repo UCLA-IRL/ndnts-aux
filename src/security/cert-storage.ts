@@ -1,7 +1,8 @@
 import { Decoder, Encoder } from '@ndn/tlv';
 import { Data, Interest, Name, Signer, Verifier } from '@ndn/packet';
 import { Certificate, createSigner, createVerifier, ECDSA } from '@ndn/keychain';
-import { Endpoint } from '@ndn/endpoint';
+import * as endpoint from '@ndn/endpoint';
+import type { Forwarder } from '@ndn/fw';
 import { Storage } from '../storage/mod.ts';
 import { SecurityAgent } from './types.ts';
 
@@ -18,7 +19,7 @@ export class CertStorage implements SecurityAgent {
     readonly trustAnchor: Certificate,
     readonly ownCertificate: Certificate,
     readonly storage: Storage,
-    readonly endpoint: Endpoint,
+    readonly fw: Forwarder,
     prvKeyBits: Uint8Array,
     protected readonly interestLifetime = 5000,
   ) {
@@ -64,7 +65,7 @@ export class CertStorage implements SecurityAgent {
         return undefined;
       } else {
         try {
-          const result = await this.endpoint.consume(
+          const result = await endpoint.consume(
             new Interest(
               keyName,
               Interest.MustBeFresh,
@@ -75,6 +76,7 @@ export class CertStorage implements SecurityAgent {
               // TODO: Find a better way to handle security
               verifier: this.localVerifier,
               retx: 5,
+              fw: this.fw,
             },
           );
 
@@ -131,7 +133,7 @@ export class CertStorage implements SecurityAgent {
     trustAnchor: Certificate,
     ownCertificate: Certificate,
     storage: Storage,
-    endpoint: Endpoint,
+    fw: Forwarder,
     prvKeyBits: Uint8Array,
     interestLifetime = 5000,
   ) {
@@ -139,7 +141,7 @@ export class CertStorage implements SecurityAgent {
       trustAnchor,
       ownCertificate,
       storage,
-      endpoint,
+      fw,
       prvKeyBits,
       interestLifetime,
     );

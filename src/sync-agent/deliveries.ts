@@ -1,4 +1,5 @@
-import { type Endpoint } from '@ndn/endpoint';
+import * as endpoint from '@ndn/endpoint';
+import { type Forwarder } from '@ndn/fw';
 import { StateVector, SvSync, type SyncNode, type SyncUpdate } from '@ndn/svs';
 import { Data, digestSigning, Name, Signer, type Verifier } from '@ndn/packet';
 import { SequenceNum } from '@ndn/naming-convention2';
@@ -47,7 +48,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
   // TODO: Use options to configure parameters
   constructor(
     readonly nodeId: Name,
-    readonly endpoint: Endpoint,
+    readonly fw: Forwarder,
     readonly syncPrefix: Name,
     readonly signer: Signer,
     readonly verifier: Verifier,
@@ -66,7 +67,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
     this._lastTillNow = new StateVector(this.state);
 
     SvSync.create({
-      endpoint: endpoint,
+      fw: fw,
       syncPrefix: syncPrefix,
       signer: signer,
       verifier: verifier,
@@ -159,7 +160,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
     this._syncInst.close();
     this._syncNode = undefined;
     const svSync = await SvSync.create({
-      endpoint: this.endpoint,
+      fw: this.fw,
       syncPrefix: this.syncPrefix,
       signer: digestSigning,
       // We can do so because the state has not been set
@@ -221,7 +222,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
 export class AtLeastOnceDelivery extends SyncDelivery {
   constructor(
     readonly nodeId: Name,
-    readonly endpoint: Endpoint,
+    readonly fw: Forwarder,
     readonly syncPrefix: Name,
     readonly signer: Signer,
     readonly verifier: Verifier,
@@ -229,7 +230,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     onUpdatePromise: Promise<UpdateEvent>,
     protected state?: StateVector,
   ) {
-    super(nodeId, endpoint, syncPrefix, signer, verifier, onUpdatePromise, state);
+    super(nodeId, fw, syncPrefix, signer, verifier, onUpdatePromise, state);
   }
 
   override async handleSyncUpdate(update: SyncUpdate<Name>) {
@@ -251,7 +252,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
       },
       ca: new LimitedCwnd(new TcpCubic(), 10),
       verifier: this.verifier,
-      endpoint: this.endpoint,
+      fw: this.fw,
       // WARN: an abort controller is required! NDNts's fetcher cannot close itself even after
       // the face is destroyed and there exists no way to send the Interest.
       // deno-lint-ignore no-explicit-any
@@ -353,7 +354,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
 
   static async create(
     nodeId: Name,
-    endpoint: Endpoint,
+    fw: Forwarder,
     syncPrefix: Name,
     signer: Signer,
     verifier: Verifier,
@@ -367,7 +368,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     if (encoded) {
       syncState = parseSyncState(encoded);
     }
-    return new AtLeastOnceDelivery(nodeId, endpoint, syncPrefix, signer, verifier, storage, onUpdatePromise, syncState);
+    return new AtLeastOnceDelivery(nodeId, fw, syncPrefix, signer, verifier, storage, onUpdatePromise, syncState);
   }
 
   override async destroy() {
@@ -399,7 +400,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
 export class LatestOnlyDelivery extends SyncDelivery {
   constructor(
     readonly nodeId: Name,
-    readonly endpoint: Endpoint,
+    readonly fw: Forwarder,
     readonly syncPrefix: Name,
     readonly signer: Signer,
     readonly verifier: Verifier,
@@ -408,14 +409,14 @@ export class LatestOnlyDelivery extends SyncDelivery {
     readonly onUpdatePromise: Promise<UpdateEvent>,
     protected state?: StateVector,
   ) {
-    super(nodeId, endpoint, syncPrefix, signer, verifier, onUpdatePromise, state);
+    super(nodeId, fw, syncPrefix, signer, verifier, onUpdatePromise, state);
   }
 
   override async handleSyncUpdate(update: SyncUpdate<Name>) {
     const prefix = getNamespace().baseName(update.id, this.syncPrefix);
     const name = prefix.append(SequenceNum.create(update.hiSeqNum));
     try {
-      const data = await this.endpoint.consume(name, { verifier: this.verifier });
+      const data = await endpoint.consume(name, { verifier: this.verifier, fw: this.fw });
 
       // Update the storage
       // Note that this will overwrite old data
@@ -460,7 +461,7 @@ export class LatestOnlyDelivery extends SyncDelivery {
 
   static async create(
     nodeId: Name,
-    endpoint: Endpoint,
+    fw: Forwarder,
     syncPrefix: Name,
     signer: Signer,
     verifier: Verifier,
@@ -478,7 +479,7 @@ export class LatestOnlyDelivery extends SyncDelivery {
     }
     return new LatestOnlyDelivery(
       nodeId,
-      endpoint,
+      fw,
       syncPrefix,
       signer,
       verifier,

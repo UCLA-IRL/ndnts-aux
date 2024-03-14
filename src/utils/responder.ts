@@ -1,4 +1,5 @@
-import { type Endpoint } from '@ndn/endpoint';
+import { produce } from '@ndn/endpoint';
+import type { Forwarder } from '@ndn/fw';
 import { Data, Interest, Name } from '@ndn/packet';
 import { Decoder } from '@ndn/tlv';
 import { Storage } from '../storage/mod.ts';
@@ -9,15 +10,16 @@ export class Responder implements Disposable {
 
   constructor(
     public readonly prefix: Name,
-    public readonly endpoint: Endpoint,
+    public readonly fw: Forwarder,
     public readonly store: Storage,
   ) {
-    this.producer = endpoint.produce(prefix, (interest) => {
+    this.producer = produce(prefix, (interest) => {
       return this.serve(interest);
     }, {
       describe: `Responder[${prefix.toString()}]`,
       routeCapture: false,
       announcement: prefix,
+      fw: fw,
     });
   }
 

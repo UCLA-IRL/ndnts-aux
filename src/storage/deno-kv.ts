@@ -19,6 +19,7 @@ export class DenoKvStorage implements Storage {
   }
 
   async set(key: string, value: Uint8Array | undefined): Promise<void> {
+    // TODO: There is a size limit
     await this.kv.set([key], value);
   }
 

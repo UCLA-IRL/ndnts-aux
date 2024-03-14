@@ -1,4 +1,5 @@
-import { Endpoint } from '@ndn/endpoint';
+import * as endpoint from '@ndn/endpoint';
+import type { Forwarder } from '@ndn/fw';
 import { Data, type Interest, Name, Signer, type Verifier } from '@ndn/packet';
 import { Decoder, Encoder } from '@ndn/tlv';
 import { BufferChunkSource, DataProducer, fetch } from '@ndn/segmented-object';
@@ -23,7 +24,7 @@ export class SyncAgent implements AsyncDisposable {
     readonly appPrefix: Name,
     readonly persistStorage: Storage,
     readonly tempStorage: Storage,
-    readonly endpoint: Endpoint,
+    readonly fw: Forwarder,
     readonly signer: Signer,
     readonly verifier: Verifier,
     readonly atLeastOnce: AtLeastOnceDelivery,
@@ -43,6 +44,7 @@ export class SyncAgent implements AsyncDisposable {
       describe: 'SyncAgent.serve',
       routeCapture: false,
       announcement: appPrefix,
+      fw: fw,
     });
     // NodeID should be announced to attract traffic.
     // Design decision: suppose node A, B and C connect to the same network.
@@ -53,6 +55,7 @@ export class SyncAgent implements AsyncDisposable {
       describe: 'SyncAgent.trafficAttractor',
       routeCapture: false,
       announcement: nodeId,
+      fw: fw,
     });
   }
 
@@ -369,7 +372,7 @@ export class SyncAgent implements AsyncDisposable {
   static async create(
     nodeId: Name,
     persistStorage: Storage,
-    endpoint: Endpoint,
+    fw: Forwarder,
     signer: Signer,
     verifier: Verifier,
     onReset?: () => void,
@@ -385,7 +388,7 @@ export class SyncAgent implements AsyncDisposable {
     const onUpdatePromise = new Promise<UpdateEvent>((resolve) => resolver = resolve);
     const latestOnly = await LatestOnlyDelivery.create(
       nodeId,
-      endpoint,
+      fw,
       lateSyncPrefix,
       signer,
       verifier,
@@ -395,7 +398,7 @@ export class SyncAgent implements AsyncDisposable {
     );
     const atLeastOnce = await AtLeastOnceDelivery.create(
       nodeId,
-      endpoint,
+      fw,
       aloSyncPrefix,
       signer,
       verifier,
@@ -407,7 +410,7 @@ export class SyncAgent implements AsyncDisposable {
       appPrefix,
       persistStorage,
       tempStorage,
-      endpoint,
+      fw,
       signer,
       verifier,
       atLeastOnce,

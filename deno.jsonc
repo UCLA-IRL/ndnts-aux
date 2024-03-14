@@ -1,7 +1,10 @@
 {
-  "tasks": {
-  },
-  "unstable": ["byonm", "net", "fs"],
+  "tasks": {},
+  "unstable": [
+    "byonm",
+    "net",
+    "fs"
+  ],
   "compilerOptions": {
     "types": [
       "@types/wicg-file-system-access"
@@ -13,12 +16,25 @@
     "indentWidth": 2,
     "useTabs": false,
     "semiColons": true,
-    "include": ["src/**", "build.ts"]
+    "include": [
+      "src/**",
+      "build.ts"
+    ]
   },
   "lint": {
-    "include": ["src/**", "build.ts"]
+    "include": [
+      "src/**",
+      "build.ts"
+    ],
+    "rules": {
+      "include": [
+        "deprecated"
+      ]
+    }
   },
   "test": {
-    "exclude": ["dist/"]
+    "exclude": [
+      "dist/"
+    ]
   }
 }

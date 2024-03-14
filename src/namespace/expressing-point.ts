@@ -1,4 +1,4 @@
-import { RetxPolicy } from '@ndn/endpoint';
+import { consume, RetxPolicy } from '@ndn/endpoint';
 import { Data, Interest, Signer, type Verifier } from '@ndn/packet';
 import * as schemaTree from './schema-tree.ts';
 import { BaseNode, BaseNodeEvents } from './base-node.ts';
@@ -198,7 +198,9 @@ export class ExpressingPoint extends BaseNode {
       throw new Error(`Interest surpressed: ${interestName.toString()} @${this.describe}`);
     }
 
-    const data = await this.handler!.endpoint!.consume(interest, {
+    // TODO: Handle data directly instead of relying on consume. Because of the segmented object.
+    const data = await consume(interest, {
+      fw: this.handler!.fw!,
       // deno-lint-ignore no-explicit-any
       signal: opts.abortSignal as any,
       retx: this.config.retx,

@@ -63,7 +63,7 @@ export class SvsInstNode extends BaseNode {
     const describe = this.describe ? `${this.describe}(${matched.name.toString()})` : undefined;
 
     const ret = await SvSync.create({
-      endpoint: this.handler!.endpoint!,
+      fw: this.handler!.fw!,
       syncPrefix: matched.name,
       signer: signer,
       verifier: verifier,

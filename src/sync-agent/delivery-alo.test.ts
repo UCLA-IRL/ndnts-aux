@@ -1,4 +1,3 @@
-import { Endpoint } from '@ndn/endpoint';
 import { Forwarder } from '@ndn/fw';
 import { Data, digestSigning, Name, type Signer, type Verifier } from '@ndn/packet';
 import { GenericNumber } from '@ndn/naming-convention2';
@@ -17,7 +16,7 @@ type SyncUpdateEvent = {
 
 class DeliveryTester implements AsyncDisposable {
   readonly #closers = new AsyncDisposableStack();
-  readonly endpoint: Endpoint;
+  readonly fwAB: Forwarder;
   readonly syncPrefix = name`/test/32=alo`;
   readonly stores;
   readonly alos = [] as AtLeastOnceDelivery[];
@@ -27,16 +26,15 @@ class DeliveryTester implements AsyncDisposable {
     readonly svsCount: number,
     readonly updateEvent?: (evt: SyncUpdateEvent, inst: DeliveryTester) => Promise<void>,
   ) {
-    const fwAB = Forwarder.create();
-    this.endpoint = new Endpoint({ fw: fwAB });
+    this.fwAB = Forwarder.create();
     this.#closers.defer(() => {
-      fwAB.close();
+      this.fwAB.close();
     });
 
     this.stores = Array.from({ length: svsCount }, (_, i) => {
       const store = new InMemoryStorage();
       this.#closers.use(store);
-      const responder = new Responder(name`/test/32=node/${i}`, this.endpoint, store);
+      const responder = new Responder(name`/test/32=node/${i}`, this.fwAB, store);
       this.#closers.use(responder);
       return store;
     });
@@ -46,7 +44,7 @@ class DeliveryTester implements AsyncDisposable {
     for (let i = 0; this.svsCount > i; i++) {
       const alo = await AtLeastOnceDelivery.create(
         name`/test/32=node/${i}`,
-        this.endpoint,
+        this.fwAB,
         this.syncPrefix,
         signer,
         verifier,
@@ -382,7 +380,7 @@ Deno.test('Alo.3 Recover after shutdown', async () => {
     // Restart alo 0. It is supposed to deliver 'C' again.
     tester.alos[0] = await AtLeastOnceDelivery.create(
       name`/test/32=node/${0}`,
-      tester.endpoint,
+      tester.fwAB,
       tester.syncPrefix,
       digestSigning,
       digestSigning,
