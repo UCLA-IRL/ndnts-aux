@@ -1,11 +1,13 @@
 export type BundlerOpts = {
   thresholdSize?: number;
   delayMs?: number;
+  maxDelayMs?: number;
 };
 
 export class Bundler {
   protected _bundle: Array<Uint8Array> = [];
   protected _timerId: number | undefined;
+  protected _startTime = 0;
   protected _cumulativeSize = 0;
   protected _opts: Required<BundlerOpts>;
 
@@ -15,11 +17,13 @@ export class Bundler {
     opts: {
       thresholdSize?: number;
       delayMs?: number;
+      maxDelayMs?: number;
     } = {},
   ) {
     this._opts = {
       thresholdSize: 3000,
-      delayMs: 200,
+      delayMs: 400, // combine as typing
+      maxDelayMs: 1600,
       ...opts,
     };
   }
@@ -33,6 +37,16 @@ export class Bundler {
     } else if (!this._timerId) {
       // Schedule emit
       this._timerId = setTimeout(() => this.issue(), this._opts.delayMs);
+      this._startTime = Date.now();
+    } else {
+      // Delay for longer when there is input
+      const timePast = Date.now() - this._startTime;
+      const maxDelayRemaining = this._opts.maxDelayMs - timePast;
+      if (maxDelayRemaining > 10) {
+        const nextDelay = Math.min(this._opts.delayMs, maxDelayRemaining);
+        clearTimeout(this._timerId);
+        this._timerId = setTimeout(() => this.issue(), nextDelay);
+      }
     }
   }
 
@@ -41,6 +55,7 @@ export class Bundler {
       clearTimeout(this._timerId);
     }
     this._timerId = undefined;
+    this._startTime = Date.now();
     const output = this._bundle.length === 1 ? this._bundle[0] : this.merge(this._bundle);
     this._bundle = [];
     this._cumulativeSize = 0;

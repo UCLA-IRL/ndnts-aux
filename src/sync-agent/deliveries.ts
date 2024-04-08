@@ -243,12 +243,13 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     const continuation = fetchSegments(prefix, {
       segmentNumConvention: SequenceNum,
       segmentRange: [update.loSeqNum, update.hiSeqNum + 1],
-      retxLimit: 40,
-      lifetimeAfterRto: 1000, // The true timeout timer is the RTO
+      retxLimit: 80,
+      lifetimeAfterRto: 1000, // Lifetime = RTO + 1000
+      // The true timeout timer is the RTO, specified below
       rtte: {
-        initRto: 1000,
-        minRto: 1000, // Minimal RTO is 1000
-        maxRto: 120000,
+        initRto: 50,
+        minRto: 50, // Minimal RTO is 50ms
+        maxRto: 2000,
       },
       ca: new LimitedCwnd(new TcpCubic(), 10),
       verifier: this.verifier,

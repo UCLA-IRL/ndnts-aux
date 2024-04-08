@@ -74,3 +74,42 @@ Deno.test('Bundler.3', async () => {
   await bundler.produce(b`World.`);
   assertEquals(result, [b`Hello World,`, b`Hello World.`]);
 });
+
+Deno.test('Bundler.4', async () => {
+  const result: Array<Uint8Array> = [];
+  const bundler = new Bundler(
+    joinMerger,
+    (update) => {
+      result.push(update);
+      return Promise.resolve();
+    },
+    {
+      thresholdSize: 1000,
+      delayMs: 300,
+      maxDelayMs: 800,
+    },
+  );
+
+  await bundler.produce(b`A`);
+  await bundler.produce(b`B`);
+  await sleep(0.4); // Trigger break
+  await bundler.produce(b`C`);
+  await bundler.produce(b`D`);
+  await sleep(0.25); // No break
+  await bundler.produce(b`E`);
+  await bundler.produce(b`F`);
+  await sleep(0.25); // No break
+  await bundler.produce(b`G`);
+  await bundler.produce(b`H`);
+  await sleep(0.25); // No break
+  await bundler.produce(b`I`);
+  await bundler.produce(b`J`);
+  await sleep(0.25); // With break
+  await bundler.produce(b`K`);
+  await bundler.produce(b`L`);
+  await sleep(0.1); // No break
+  await bundler.produce(b`M`);
+  await bundler.produce(b`N`);
+  await sleep(0.4); // With break
+  assertEquals(result, [b`AB`, b`CDEFGHIJ`, b`KLMN`]);
+});

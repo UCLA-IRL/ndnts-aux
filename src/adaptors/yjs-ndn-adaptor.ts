@@ -40,7 +40,8 @@ export class NdnSvsAdaptor {
         (content) => this.syncAgent.publishUpdate(this.topic, content),
         {
           thresholdSize: 3000,
-          delayMs: 200,
+          delayMs: 400,
+          maxDelayMs: 1600,
         },
       );
     }

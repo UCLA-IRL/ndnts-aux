@@ -201,6 +201,7 @@ export class SyncAgent implements AsyncDisposable {
         verifier: this.verifier,
         modifyInterest: { mustBeFresh: true },
         lifetimeAfterRto: 2000,
+        retxLimit: 25,
       });
       for await (const segment of result) {
         // Cache packets
