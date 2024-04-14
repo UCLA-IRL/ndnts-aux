@@ -68,7 +68,6 @@ export class CertStorage implements SecurityAgent {
           const result = await endpoint.consume(
             new Interest(
               keyName,
-              Interest.MustBeFresh,
               Interest.Lifetime(this.interestLifetime),
             ),
             {
@@ -85,6 +84,7 @@ export class CertStorage implements SecurityAgent {
 
           return Certificate.fromData(result);
         } catch {
+          console.error(`Failed to fetch certificate: ${keyName.toString()}`);
           return undefined;
         }
       }

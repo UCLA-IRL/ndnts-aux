@@ -126,7 +126,6 @@ Deno.test('Fetch missing certificate once', async () => {
   const fetchedData = await endpoint.consume(
     new Interest(
       name`/${appPrefix}/8=node-1/data`,
-      Interest.MustBeFresh,
       Interest.Lifetime(1000),
     ),
     {
