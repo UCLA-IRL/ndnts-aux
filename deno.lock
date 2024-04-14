@@ -195,16 +195,16 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@types/wicg-file-system-access@^2023.10.4",
+        "npm:@types/wicg-file-system-access@^2023.10.5",
         "npm:abortable-iterator@^5.0.1",
         "npm:event-iterator@^2.0.0",
         "npm:eventemitter3@^5.0.1",
         "npm:it-pushable@^3.2.3",
-        "npm:jose@^5.2.3",
-        "npm:p-defer@^4.0.0",
+        "npm:jose@^5.2.4",
+        "npm:p-defer@^4.0.1",
         "npm:streaming-iterables@^8.0.1",
         "npm:tslib@^2.6.2",
-        "npm:type-fest@^4.11.1",
+        "npm:type-fest@^4.15.0",
         "npm:uuid@^9.0.1",
         "npm:wait-your-turn@^1.0.1",
         "npm:y-protocols@^1.0.6",

@@ -84,6 +84,9 @@ export class CertStorage implements SecurityAgent {
 
           return Certificate.fromData(result);
         } catch {
+          // TODO: This is suggested for Varun for debug.
+          // However, it adds output to our unit test and may hurt console applications by unnecessary output.
+          // Prevent this output when users do not want. Or simply remove this line when the debug is not needed.
           console.error(`Failed to fetch certificate: ${keyName.toString()}`);
           return undefined;
         }
