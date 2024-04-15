@@ -79,7 +79,16 @@ export class SyncAgent implements AsyncDisposable {
     return this._ready;
   }
 
+  /**
+   * Set the readiness to start or stop processing updates.
+   * Condition: Sync deliveries are only running when ready is true.
+   */
   public set ready(value: boolean) {
+    if (this._ready && !value) {
+      throw new Error(
+        'Due to implementation limit SVS is unstoppable. Please do not set ready = false manually for now.',
+      );
+    }
     this._ready = value;
     if (value) {
       this.atLeastOnce.start();
@@ -201,7 +210,7 @@ export class SyncAgent implements AsyncDisposable {
         verifier: this.verifier,
         modifyInterest: { mustBeFresh: true },
         lifetimeAfterRto: 2000,
-        retxLimit: 25,
+        retxLimit: 150, // See Deliveries. 60*1000/(2*200)=150. Default minRto = 150.
       });
       for await (const segment of result) {
         // Cache packets

@@ -86,11 +86,8 @@ export class Workspace implements AsyncDisposable {
   }
 
   public async destroy() {
-    this.syncAgent.ready = false;
-    await Promise.all([
-      this.yjsSnapshotMgr.destroy(),
-      this.syncAgent.destroy(),
-    ]);
+    await this.syncAgent.destroy();
+    await this.yjsSnapshotMgr.destroy();
     // persistStore is not created by workspace
   }
 

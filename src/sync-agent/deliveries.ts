@@ -243,12 +243,20 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     const continuation = fetchSegments(prefix, {
       segmentNumConvention: SequenceNum,
       segmentRange: [update.loSeqNum, update.hiSeqNum + 1],
-      retxLimit: 80,
+      retxLimit: 600,
       lifetimeAfterRto: 1000, // Lifetime = RTO + 1000
       // The true timeout timer is the RTO, specified below
       rtte: {
         initRto: 50,
-        minRto: 50, // Minimal RTO is 50ms
+        // Minimal RTO is 50ms
+        // Note: This has to be small enough to quickly trigger the path switch of BestRoute strategy
+        // However, due to an implementation flaw of SegmentFetcher, RTO only doubles once per window.
+        // Thus, maxRTO does not make any sense most of the time: the RTT in Workspace can only be very small
+        // (when Interest is forwarded to right path) or very large (when wrong path or Data missing).
+        // Therefore, before the SegmentFetcher issue can get resolved, we use the retxLimit to control the
+        // maximum timeout: retxLimit = Expected Timeout / (2 * minRto)
+        // Default expected timeout is 1 min, thus retxLimit == 600
+        minRto: 50,
         maxRto: 2000,
       },
       ca: new LimitedCwnd(new TcpCubic(), 10),
