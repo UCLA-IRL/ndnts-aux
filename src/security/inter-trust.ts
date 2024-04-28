@@ -1,20 +1,20 @@
 import { Decoder, Encoder } from '@ndn/tlv';
-import { Data, Interest, Name, Signer, Verifier } from '@ndn/packet';
-import { Certificate, createSigner, createVerifier, ECDSA, ValidityPeriod } from '@ndn/keychain';
+import { Component, Data, Interest, Name, Signer, ValidityPeriod, Verifier } from '@ndn/packet';
+import { Certificate, createSigner, createVerifier, ECDSA } from '@ndn/keychain';
 import * as endpoint from '@ndn/endpoint';
 import type { Forwarder } from '@ndn/fw';
+import { Version } from '@ndn/naming-convention2';
 import { Storage } from '../storage/mod.ts';
-import { base64ToBytes } from '@ucla-irl/ndnts-aux/utils';
 import { SecurityAgent } from './types.ts';
 
 /**
- * A Signer & Verifier that handles security authentication.
- * CertStorage itself is not a storage, actually. Depend on an external storage.
+ * A Signer & Verifier handling cross-zone trust relation.
  */
+// TODO: (Urgent) Add test to this class
 export class InterTrust implements SecurityAgent {
   private _signer: Signer | undefined;
   readonly readyEvent: Promise<void>;
-  private trustedNames: string[] = [];
+  // private trustedNames: string[] = [];  // TODO: Not used for now.
 
   constructor(
     readonly trustAnchor: Certificate,
@@ -65,6 +65,17 @@ export class InterTrust implements SecurityAgent {
         return undefined;
       } else {
         try {
+          // TODO: (Urgent) PoR is never fetched.
+          // In the first design of Web-of-trust (I'm not sure if this is the latest)
+          // all application data are supposed to be signed by self-signed certificats.
+          // One is supposed to enumerate PoR issuer and fetch it.
+          // Enroll the new certificate upon the receiption of PoR.
+          // This is not done here.
+          // Also, with respect to the implementation designed above, chained invitation is not allowed.
+          // That is, if A invites B into the workspace, then everyone else must know A.
+          // The one who does not know A cannot successfully enumerate PoR of B, which further triggers a hard failure.
+          // (Supposed to be fixed with the Sync, but not done yet)
+          // This needs to be parallel due to limited certifcate fetching deadline.
           const result = await endpoint.consume(
             new Interest(
               keyName,
@@ -75,16 +86,20 @@ export class InterTrust implements SecurityAgent {
               // Fetched key must be signed by a known key
               // TODO: Find a better way to handle security
               verifier: this.localVerifier,
-              retx: 5,
+              retx: 20,
               fw: this.fw,
             },
           );
 
-          // Cache result certificates
+          // Cache result certificates. NOTE: no await needed
           this.storage.set(result.name.toString(), Encoder.encode(result));
 
           return Certificate.fromData(result);
         } catch {
+          // TODO: This is suggested for Varun for debug.
+          // However, it adds output to our unit test and may hurt console applications by unnecessary output.
+          // Prevent this output when users do not want. Or simply remove this line when the debug is not needed.
+          console.error(`Failed to fetch certificate: ${keyName.toString()}`);
           return undefined;
         }
       }
@@ -147,67 +162,34 @@ export class InterTrust implements SecurityAgent {
     return result;
   }
 
-  //function that takes b64 encoded certificate bytes and returns cert
-  decodeCert = (b64Value: string) => {
-    const wire = base64ToBytes(b64Value);
-    const data = Decoder.decode(wire, Data);
-    const cert = Certificate.fromData(data);
-    return cert;
-  };
+  /**
+   * Generate the cross-signed certificate (PoR, Proof-of-zone-Recognition)
+   * @param strangerCert Stranger's certficate in base64 format
+   * @returns PoR
+   */
+  public async generatePoR(strangerCert: Certificate): Promise<Certificate> {
+    // The name of cross signed certificate, following the naming convention described in Intertrust poster
+    const zoneACertName = this.trustAnchor.name;
+    // Key name is cert name except the last two components
+    const strangerKeyName = strangerCert.name.getPrefix(strangerCert.name.length - 2);
+    const porName = strangerKeyName.append(
+      new Component(8, Encoder.encode(zoneACertName)), // Encoded Za name as issuer
+      Version.create(1), // Version number fixed to 1 for easy fetching, as decided in Roadmap stage 1
+    );
 
-  /** Import an external certificate in base64 format into the storage */
-  async importCertAsb64(certb64: string) {
-    const cert = this.decodeCert(certb64); // convert b64 into type Certificate
-    await this.storage.set(cert.name.toString(), Encoder.encode(cert.data)); // put certificate into cache
-  }
-
-  async generatePoR(
-    strangerCert: string, // stranger's certficate in base64 format
-  ): Promise<string> {
-    //function that generates the name of cross signed certificate
-    //this function follows the naming convention described in Intertrust poster
-    const generatePoRName = (strangerKeyname: string, zone_A_certname: string = this.trustAnchor.name.toString()) => {
-      // Construct <Z_a name encoded>
-      const parts: string[] = zone_A_certname.split('/');
-      let zone_A_name: string = '';
-      for (let i = 0; i < parts.length; i++) { //put <Z_a name encoded> together with a loop
-        if (parts[i].includes('KEY')) {
-          break;
-        }
-        zone_A_name += parts[i] + '/';
-      }
-
-      return new Name(strangerKeyname + '/' + zone_A_name + '/v1');
-    };
-
-    const sCert = this.decodeCert(strangerCert); //stranger's cert
-
-    //create validity parameters to be set with .build method later
+    // Validity period is 1 hour later
     const now = Date.now();
-    const oneHourInMilliseconds = 60 * 60 * 1000; // Number of milliseconds in an hour, change this if you want to adjust validity period
-    const validityPeriodEnd = now + oneHourInMilliseconds;
-    const validityPeriod = new ValidityPeriod();
-    validityPeriod.notBefore = now;
-    validityPeriod.notAfter = validityPeriodEnd;
+    const validityPeriod = new ValidityPeriod(now, now + 60 * 60 * 1000);
 
-    //this check is needed because Certificate.build function needs non-null signer
-    if (!this._signer) {
-      throw new Error('Signer is undefined');
-    }
     // Create a cross-signed certificate, i.e. the PoR
     const proofOfZoneRecognition = await Certificate.build({
-      name: generatePoRName(sCert.name.toString()),
+      name: porName,
       validity: validityPeriod,
-      publicKeySpki: sCert.publicKeySpki, // Now accessing getPublicKey on the Certificate object
-      signer: this._signer,
+      publicKeySpki: strangerCert.publicKeySpki, // The publicKey of the Certificate
+      signer: this._signer!, // Signer is initialized when ready
     });
 
-    // Cache PoR certificate
-    this.storage.set(proofOfZoneRecognition.name.toString(), Encoder.encode(proofOfZoneRecognition.data));
-
-    // Encode the final certificate to base64 using Node.js Buffer
-    const encodedPoR = Buffer.from(Encoder.encode(proofOfZoneRecognition.data)).toString('base64');
-
-    return encodedPoR; // Return the encoded string
+    await this.importCert(proofOfZoneRecognition);
+    return proofOfZoneRecognition;
   }
 }

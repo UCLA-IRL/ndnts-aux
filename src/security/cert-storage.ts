@@ -74,12 +74,12 @@ export class CertStorage implements SecurityAgent {
               // Fetched key must be signed by a known key
               // TODO: Find a better way to handle security
               verifier: this.localVerifier,
-              retx: 5,
+              retx: 20,
               fw: this.fw,
             },
           );
 
-          // Cache result certificates
+          // Cache result certificates. NOTE: no await needed
           this.storage.set(result.name.toString(), Encoder.encode(result));
 
           return Certificate.fromData(result);

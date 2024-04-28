@@ -1,6 +1,6 @@
 {
   "name": "@ucla-irl/ndnts-aux",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "NDNts Auxiliary Package for Web and Deno",
   "scripts": {
     "test": "deno test --no-check",
@@ -24,11 +24,11 @@
     "eventemitter3": "^5.0.1",
     "jose": "^5.2.4",
     "tslib": "^2.6.2",
-    "type-fest": "^4.15.0",
+    "type-fest": "^4.17.0",
     "uuid": "^9.0.1",
     "wait-your-turn": "^1.0.1",
     "y-protocols": "^1.0.6",
-    "yjs": "^13.6.14"
+    "yjs": "^13.6.15"
   },
   "devDependencies": {
     "@ndn/endpoint": "https://ndnts-nightly.ndn.today/endpoint.tgz",

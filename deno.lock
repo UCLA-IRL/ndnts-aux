@@ -204,11 +204,11 @@
         "npm:p-defer@^4.0.1",
         "npm:streaming-iterables@^8.0.1",
         "npm:tslib@^2.6.2",
-        "npm:type-fest@^4.15.0",
+        "npm:type-fest@^4.17.0",
         "npm:uuid@^9.0.1",
         "npm:wait-your-turn@^1.0.1",
         "npm:y-protocols@^1.0.6",
-        "npm:yjs@^13.6.14"
+        "npm:yjs@^13.6.15"
       ]
     }
   }
