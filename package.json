@@ -1,6 +1,6 @@
 {
   "name": "@ucla-irl/ndnts-aux",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "description": "NDNts Auxiliary Package for Web and Deno",
   "scripts": {
     "test": "deno test --no-check",
@@ -20,11 +20,12 @@
   },
   "dependencies": {
     "@ndn/sync-api": "https://ndnts-nightly.ndn.today/sync-api.tgz",
+    "cbor-x": "^1.5.9",
     "event-iterator": "^2.0.0",
     "eventemitter3": "^5.0.1",
     "jose": "^5.2.4",
     "tslib": "^2.6.2",
-    "type-fest": "^4.17.0",
+    "type-fest": "^4.18.0",
     "uuid": "^9.0.1",
     "wait-your-turn": "^1.0.1",
     "y-protocols": "^1.0.6",

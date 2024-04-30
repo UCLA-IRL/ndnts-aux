@@ -27,6 +27,7 @@ export class Workspace implements AsyncDisposable {
     onReset?: () => void;
     createNewDoc?: () => Promise<void>;
     useBundler?: boolean;
+    groupKeyBits?: Uint8Array;
   }) {
     // Always init a new one, and then load.
     if (opts.createNewDoc) {
@@ -44,6 +45,7 @@ export class Workspace implements AsyncDisposable {
       opts.signer,
       opts.verifier,
       opts.onReset,
+      opts.groupKeyBits,
     );
 
     // Root doc using CRDT and Sync

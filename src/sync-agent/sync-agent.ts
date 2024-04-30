@@ -3,7 +3,7 @@ import type { Forwarder } from '@ndn/fw';
 import { Data, type Interest, Name, Signer, type Verifier } from '@ndn/packet';
 import { Decoder, Encoder } from '@ndn/tlv';
 import { BufferChunkSource, DataProducer, fetch } from '@ndn/segmented-object';
-import { concatBuffers } from '@ndn/util';
+import { concatBuffers, fromHex } from '@ndn/util';
 import { AtLeastOnceDelivery, LatestOnlyDelivery, UpdateEvent } from './deliveries.ts';
 import { getNamespace } from './namespace.ts';
 import { InMemoryStorage, Storage } from '../storage/mod.ts';
@@ -13,6 +13,16 @@ import { panic, randomUUID } from '../utils/mod.ts';
 export type ChannelType = 'update' | 'blob' | 'status' | 'blobUpdate';
 const AllChannelValues = ['update', 'blob', 'status', 'blobUpdate'];
 
+type InnerData = {
+  channel: ChannelType;
+  topic: string;
+  content: Uint8Array;
+  iv?: Uint8Array;
+};
+
+// TODO: [Urgent] This design is too messy and subject to redesign.
+//       - Replace inner data with a better designed object model (based on CBOR)
+//       - Reimplement this class using NTSchema
 export class SyncAgent implements AsyncDisposable {
   private _ready = false;
   readonly listeners: { [key: string]: (content: Uint8Array, id: Name) => void } = {};
@@ -30,6 +40,7 @@ export class SyncAgent implements AsyncDisposable {
     readonly atLeastOnce: AtLeastOnceDelivery,
     readonly latestOnly: LatestOnlyDelivery,
     readonly onReset?: () => void,
+    readonly groupKey?: CryptoKey,
   ) {
     atLeastOnce.onReset = () => this.onResetTriggered();
     latestOnly.onReset = () => this.onResetTriggered();
@@ -96,7 +107,15 @@ export class SyncAgent implements AsyncDisposable {
     }
   }
 
-  private parseInnerData(content: Uint8Array) {
+  public async groupKeyBits(): Promise<Uint8Array | undefined> {
+    if (this.groupKey) {
+      return new Uint8Array(await crypto.subtle.exportKey('raw', this.groupKey));
+    } else {
+      return undefined;
+    }
+  }
+
+  private async parseInnerData(content: Uint8Array): Promise<InnerData | undefined> {
     try {
       const data = Decoder.decode(content, Data);
       // We use Data for convenient binary encoding. Currently it is not a fully functional Data packet
@@ -110,24 +129,53 @@ export class SyncAgent implements AsyncDisposable {
         console.error(`Malformed encapsulated packet: ${data.name}`);
         return undefined;
       }
-      const channel = channelText as ChannelType;
       const topic = data.name.get(1)!.text;
-      return {
-        channel: channel,
-        topic: topic,
-        content: data.content,
-      };
+      const iv = fromHex(data.name.get(2)!.text.replaceAll('-', ''));
+      // TODO: Temporary convention is: if channel starts with 'ENC-', then is encrypted
+      if (channelText.startsWith('ENC-')) {
+        const channel = channelText.substring(4) as ChannelType;
+        // Decrypt content
+        if (this.groupKey) {
+          const innerContent = await crypto.subtle.decrypt({ name: 'AES-CBC', iv: iv }, this.groupKey, data.content);
+          return {
+            channel: channel,
+            topic: topic,
+            content: new Uint8Array(innerContent),
+          };
+        } else {
+          console.error('[SyncAgent] Unable to decrypt inner data: group key unknown.');
+          return undefined;
+        }
+      } else {
+        const channel = channelText as ChannelType;
+        return {
+          channel: channel,
+          topic: topic,
+          content: data.content,
+        };
+      }
     } catch (e) {
-      console.error(`Unable to decode encapsulated packet: `, e);
+      console.error(`[SyncAgent] Unable to decode encapsulated packet: `, e);
       return undefined;
     }
   }
 
-  private makeInnerData(channel: ChannelType, topic: string, content: Uint8Array) {
-    const data = new Data(
-      new Name([channel, topic, randomUUID()]),
-      content,
-    );
+  private async makeInnerData(channel: ChannelType, topic: string, content: Uint8Array, toEncrypt = false) {
+    const uid = randomUUID();
+    let data: Data;
+    if (!this.groupKey || !toEncrypt) {
+      data = new Data(
+        new Name([channel, topic, uid]),
+        content,
+      );
+    } else {
+      const iv = fromHex(uid.replaceAll('-', ''));
+      const innerContent = await crypto.subtle.encrypt({ name: 'AES-CBC', iv: iv }, this.groupKey, content);
+      data = new Data(
+        new Name(['ENC-' + channel, topic, uid]),
+        new Uint8Array(innerContent),
+      );
+    }
     return Encoder.encode(data);
   }
 
@@ -142,7 +190,10 @@ export class SyncAgent implements AsyncDisposable {
   private async onUpdate(wire: Uint8Array, id: Name) {
     if (!this._ready) {
       console.error('[SyncAgent] FATAL: NOT READY YET');
-      panic('[SyncAgent] Not ready for update. Check program flow.');
+      panic(
+        '[SyncAgent] Severe program bug: SyncAgent is not ready for update. ' +
+          'Please check program flow and tell the maintainer immediately',
+      );
     }
     if (wire.length <= 0) {
       // The dummy update to trigger SVS
@@ -151,9 +202,13 @@ export class SyncAgent implements AsyncDisposable {
 
     // Current version does not remember the state of delivered updates
     // So it is required to register callbacks of all docs before a real update arrives
-    const inner = this.parseInnerData(wire);
+    const inner = await this.parseInnerData(wire);
     if (!inner) {
       // Invalid inner data
+      console.error(
+        '[SyncAgent] Unable to parse a malformed Data. This may come from a human error.' +
+          'You are likely out-of-sync now. Prepare for quitting and rejoining the workspace next time.',
+      );
       return;
     }
     const { channel, topic, content } = inner;
@@ -247,6 +302,7 @@ export class SyncAgent implements AsyncDisposable {
     // Try to fetch missing blob
     await this.fetchBlob(Encoder.encode(name));
     return await this.persistStorage.get(name.toString());
+    // TODO: Decrypt blob if necessary
   }
 
   // publishBlob segments and produce a blob object
@@ -256,6 +312,7 @@ export class SyncAgent implements AsyncDisposable {
     if (name === undefined || name.length === 0) {
       name = getNamespace().genBlobName(this.appPrefix);
     }
+    // TODO: Encrypt blob if necessary
     await this.persistStorage.set(name.toString(), blobContent);
 
     // Put segmented packets
@@ -266,7 +323,7 @@ export class SyncAgent implements AsyncDisposable {
 
     if (push) {
       // Publish encoded name
-      await this.atLeastOnce.produce(this.makeInnerData('blob', topic, Encoder.encode(name)));
+      await this.atLeastOnce.produce(await this.makeInnerData('blob', topic, Encoder.encode(name), false));
     }
 
     return name;
@@ -274,21 +331,21 @@ export class SyncAgent implements AsyncDisposable {
 
   public async publishUpdate(topic: string, content: Uint8Array) {
     if (content.length <= 6000) {
-      await this.atLeastOnce.produce(this.makeInnerData('update', topic, content));
+      await this.atLeastOnce.produce(await this.makeInnerData('update', topic, content, !!this.groupKey));
     } else {
       // Too large for one packet, do blob update
       const name = await this.publishBlob('updateSeg', content, undefined, false);
       const nameWire = Encoder.encode(name);
-      await this.atLeastOnce.produce(this.makeInnerData('blobUpdate', topic, nameWire));
+      await this.atLeastOnce.produce(await this.makeInnerData('blobUpdate', topic, nameWire, false));
     }
   }
 
-  public publishStatus(topic: string, content: Uint8Array) {
+  public async publishStatus(topic: string, content: Uint8Array) {
     // TODO (future): Do we need to do something else to make it better?
     if (content.length > 6000) {
       console.error(`Too large status for topic ${topic}: ${content.length}. Please use the blob channel.`);
     }
-    return this.latestOnly.produce(this.makeInnerData('status', topic, content));
+    return await this.latestOnly.produce(await this.makeInnerData('status', topic, content));
   }
 
   public getStatus() {
@@ -350,9 +407,13 @@ export class SyncAgent implements AsyncDisposable {
 
     const start = startFrom ?? new StateVector();
     await this.atLeastOnce.replay(start, async (wire, id) => {
-      const inner = this.parseInnerData(wire);
+      const inner = await this.parseInnerData(wire);
       if (!inner) {
         // Invalid inner data
+        console.error(
+          '[SyncAgent] Unable to parse a malformed Data. This may come from a human error.' +
+            'You are likely out-of-sync now. Prepare for quitting and rejoining the workspace next time.',
+        );
         return;
       }
       const { channel, topic: updateTopic, content } = inner;
@@ -386,6 +447,7 @@ export class SyncAgent implements AsyncDisposable {
     signer: Signer,
     verifier: Verifier,
     onReset?: () => void,
+    groupKeyBits?: Uint8Array,
   ) {
     const tempStorage = new InMemoryStorage();
     // Note: we need the signer name to be /[appPrefix]/<nodeId>/KEY/<keyID>
@@ -396,6 +458,15 @@ export class SyncAgent implements AsyncDisposable {
     const lateSyncPrefix = appPrefix.append(getNamespace().syncKeyword, getNamespace().latestOnlyKeyword);
     let resolver: ((event: UpdateEvent) => void) | undefined = undefined;
     const onUpdatePromise = new Promise<UpdateEvent>((resolve) => resolver = resolve);
+
+    let groupKey: CryptoKey | undefined;
+    if (groupKeyBits) {
+      groupKey = await crypto.subtle.importKey('raw', groupKeyBits, 'AES-CBC', true, [
+        'encrypt',
+        'decrypt',
+      ]);
+    }
+
     const latestOnly = await LatestOnlyDelivery.create(
       nodeId,
       fw,
@@ -426,6 +497,7 @@ export class SyncAgent implements AsyncDisposable {
       atLeastOnce,
       latestOnly,
       onReset,
+      groupKey,
     );
     resolver!((content, id) => ret.onUpdate(content, id));
     return ret;
