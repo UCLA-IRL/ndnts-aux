@@ -125,7 +125,7 @@ export class SyncAgent implements AsyncDisposable {
         return undefined;
       }
       const channelText = data.name.get(0)!.text;
-      if (!AllChannelValues.find((x) => x === channelText)) {
+      if (!AllChannelValues.find((x) => channelText === x || channelText === `ENC-${x}`)) {
         console.error(`Malformed encapsulated packet: ${data.name}`);
         return undefined;
       }
