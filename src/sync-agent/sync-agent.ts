@@ -260,6 +260,8 @@ export class SyncAgent implements AsyncDisposable {
     }
 
     const buffers: Uint8Array[] = [];
+    //Adam Chen Debug
+    console.log('SyncAgent fetchBlob fetching: ', blobName.toString())
     try {
       const result = fetch(blobName, {
         verifier: this.verifier,
@@ -282,6 +284,8 @@ export class SyncAgent implements AsyncDisposable {
 
     // Save blob (SA getBlob())
     await this.persistStorage.set(blobName.toString(), blob);
+    //Adam Chen Debug
+    console.log('SyncAgent fetchBlob complete.')
   }
 
   public register(channel: ChannelType, topic: string, handler: (content: Uint8Array, id: Name) => void) {
@@ -354,6 +358,24 @@ export class SyncAgent implements AsyncDisposable {
 
   async serve(interest: Interest) {
     const intName = interest.name;
+
+    // -- Adam Chen Injection point 2 --
+
+    if (intName.get(this.appPrefix.length)?.equals(getNamespace().snapshotKeyword)) {
+      // console.log('snapshot interest detected, custom routine activated')
+      let wire = await this.persistStorage.get(intName.toString())
+      if (wire === undefined || wire.length === 0) {
+          // console.warn(`A remote peer is fetching a non-existing object: ${intName.toString()}`);
+          console.log('MISS: SnapshotInterest: ', intName.toString())
+          return undefined;
+      }
+      let data = Decoder.decode(wire, Data)
+      console.log('HIT: SnapshotInterest and Returned Data: ',intName.toString(),data.name.toString())
+      return data
+      }
+
+      // -- End Injection point 2 --
+
     if (intName.length <= this.appPrefix.length + 1) {
       // The name should be at least two components plus app prefix
       return undefined;

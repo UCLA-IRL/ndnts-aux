@@ -3,6 +3,12 @@ import * as Y from 'yjs';
 import { Awareness } from 'y-protocols/awareness.js';
 import { Bundler } from './bundler.ts';
 
+// Adam Chen Additional Imports
+import { Decoder, Encoder } from '@ndn/tlv';
+import { Component, Data, Name} from '@ndn/packet';
+import { Version } from '@ndn/naming-convention2';
+import { StateVector } from '@ndn/svs';
+
 /**
  * NDN SVS Provider for Yjs. Wraps update into `SyncAgent`'s `update` channel.
  *
@@ -33,11 +39,24 @@ export class NdnSvsAdaptor {
     useBundler: boolean = false,
   ) {
     syncAgent.register('update', topic, (content) => this.handleSyncUpdate(content));
+    // Adam Chen callback on receiving a snapshot blob for Injection Point 3
+    syncAgent.register('blob','snapshot',(content) => this.handleSnapshotUpdate(content))
     doc.on('update', this.callback);
     if (useBundler) {
+      // this.#bundler = new Bundler(
+      //   Y.mergeUpdates,
+      //   (content) => this.syncAgent.publishUpdate(this.topic, content),
+      //   {
+      //     thresholdSize: 3000,
+      //     delayMs: 400,
+      //     maxDelayMs: 1600,
+      //   },
+      // );
+
+      // Adam Chen Injection Point 1 override
       this.#bundler = new Bundler(
         Y.mergeUpdates,
-        (content) => this.syncAgent.publishUpdate(this.topic, content),
+        (content) => this.publishUpdate(this.topic, content),
         {
           thresholdSize: 3000,
           delayMs: 400,
@@ -96,9 +115,120 @@ export class NdnSvsAdaptor {
     if (this.#bundler) {
       await this.#bundler.produce(content);
     } else {
-      await this.syncAgent.publishUpdate(this.topic, content);
+      // await this.syncAgent.publishUpdate(this.topic, content);
+
+      // Adam Chen Injection point 1 override 
+      await this.publishUpdate(this.topic,content)
     }
   }
+
+  // Adam Chen Injection point 1
+  async publishUpdate(topic:any,content:any) {
+    await this.syncAgent.publishUpdate(topic, content)
+    // await new Promise(r => setTimeout(r,500));
+    // forced wait so that publishUpdate() is completed before we check SV.
+    console.log('-- Injection point 1: Check StateVector / Create Snapshot --')
+    let stateVector = this.syncAgent.getUpdateSyncSV()
+    console.log('debug: stateVector object: ',stateVector)
+    let count = 0
+    for (const [id,seq] of stateVector){
+        count += seq
+    }
+    console.log('Total count of state vector', count)
+    console.log('The above number should match the state vector in the debug page')
+    if (count % 5 == 0){
+        console.log('It\'s time to make a snapshot!')
+        console.log('debug: group prefix: ', this.syncAgent.appPrefix.toString())
+        let encodedSV = Encoder.encode(stateVector)
+        let snapshotPrefix = this.syncAgent.appPrefix.append("32=snapshot")
+        // New SVS encodings
+        let snapshotName = snapshotPrefix.append(new Component(Version.type, encodedSV))
+        console.log('debug: targeted snapshot Prefix (persistStore key): ', snapshotPrefix.toString())
+        // /groupPrefix/32=snapshot/
+        console.log('debug: targeted snapshot Name: ', snapshotName.toString())
+        // /groupPrefix/32=snapshot/54=<stateVector>
+        let decodedSV = Decoder.decode(snapshotName.at(-1).value, StateVector)
+        console.log('debug: decoding encoded SV from snapshotName: ', decodedSV)
+        let count = 0
+        for (const [id,seq] of decodedSV){
+            count += seq
+        }
+        console.log('debug: decoding encoded SV total packet count: ', count)
+        console.log('This should match the state vector in the debug page and the previous count before encoding')
+
+        let content = Y.encodeStateAsUpdate(this.doc)
+        // its already in UTF8, transporting currently without any additional encoding.
+        console.log('yjs backend data: ',content)
+
+        // use syncAgent's blob and publish mechanism - use a different topic.
+
+        await this.syncAgent.publishBlob('snapshot',content,snapshotName,true)
+
+        //first segmented object is at /50=%00
+        let firstSegmentName = snapshotName.append('50=%00').toString()
+        console.log('debugTargetName: ', firstSegmentName)
+        let firstSegmentPacketEncoded = await this.syncAgent.persistStorage.get(firstSegmentName)
+        if (firstSegmentPacketEncoded){
+          let firstSegmentPacket = Decoder.decode(firstSegmentPacketEncoded,Data)
+          console.log('persistentStore check: ', firstSegmentPacket)
+          console.log('persistentStore check Data Name:', firstSegmentPacket.name.toString())
+          await this.syncAgent.persistStorage.set(snapshotPrefix.toString(), Encoder.encode(firstSegmentPacket));
+        }
+        
+    }
+}
+// End Injection point 1
+
+// -- Adam Chen Injection Point 3: HandleSnapshotUpdate --
+async handleSnapshotUpdate(snapshotName: Uint8Array){
+    // Maybe it's wise to put this under a try() because it might fail due to network issues.
+    let decodedSnapshotName = Decoder.decode(snapshotName, Name)
+    console.log('-- Adam Chen Injection Point 3: Update Latest Snapshot (Received) --')
+    console.log('Handling received snapshot packet with name: ', decodedSnapshotName.toString())
+
+    let snapshotPrefix = this.syncAgent.appPrefix.append("32=snapshot")
+    console.log('snapshot prefix in persistStorage: ', snapshotPrefix.toString())
+    let oldSnapshotFirstSegmentEncoded = await this.syncAgent.persistStorage.get(snapshotPrefix.toString())
+    let oldSVCount = 0
+    if (oldSnapshotFirstSegmentEncoded){
+        let oldSnapshotFirstSegment = Decoder.decode(oldSnapshotFirstSegmentEncoded, Data)
+        let oldSnapshotVector = Decoder.decode(oldSnapshotFirstSegment.name.at(-2).value,StateVector)
+        for (const [id,seq] of oldSnapshotVector){
+            oldSVCount += seq
+        }
+    }
+
+    let snapshotSV = Decoder.decode(decodedSnapshotName.at(-1).value,StateVector)
+    let snapshotSVcount = 0
+    for (const [id,seq] of snapshotSV){
+        snapshotSVcount += seq
+    }
+
+    console.log('current state vector total count: ', oldSVCount)
+    console.log('snapshot state vector total count: ', snapshotSVcount)
+
+    if (snapshotSVcount>oldSVCount){
+        let firstSegmentName = decodedSnapshotName.append('50=%00').toString()
+        console.log('Retrieving the following from persist Storage: ', firstSegmentName)
+        // await this.syncAgent.getBlob(decodedSnapshotName)
+        await new Promise((r) => setTimeout(r, 1000))
+        let firstSegmentPacketEncoded = await this.syncAgent.persistStorage.get(firstSegmentName)
+        if (firstSegmentPacketEncoded){
+            console.log('Debug: Retrieval results: ', firstSegmentPacketEncoded)
+            let firstSegmentPacket = Decoder.decode(firstSegmentPacketEncoded, Data)
+            console.log('Writing this packet: ', firstSegmentPacket.name.toString())
+            console.log('To this location: ', snapshotPrefix.toString())
+            // this is done to update the key of the prefix so program return latest when blind fetching.
+            this.syncAgent.persistStorage.set(snapshotPrefix.toString(), Encoder.encode(firstSegmentPacket));
+            // should set snapshotPrefix to the newest packet.
+        }
+        else {
+            console.log('PersistentStorage doesnt have the snapshot yet. Skipping update.')
+        }
+        
+    }
+}
+// End Injection point 3
 
   public handleSyncUpdate(content: Uint8Array) {
     // Apply patch
