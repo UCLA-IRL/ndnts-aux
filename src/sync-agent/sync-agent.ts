@@ -363,13 +363,13 @@ export class SyncAgent implements AsyncDisposable {
 
     if (intName.get(this.appPrefix.length)?.equals(getNamespace().snapshotKeyword)) {
       // console.log('snapshot interest detected, custom routine activated')
-      let wire = await this.persistStorage.get(intName.toString())
+      const wire = await this.persistStorage.get(intName.toString())
       if (wire === undefined || wire.length === 0) {
           // console.warn(`A remote peer is fetching a non-existing object: ${intName.toString()}`);
           console.log('MISS: SnapshotInterest: ', intName.toString())
           return undefined;
       }
-      let data = Decoder.decode(wire, Data)
+      const data = Decoder.decode(wire, Data)
       console.log('HIT: SnapshotInterest and Returned Data: ',intName.toString(),data.name.toString())
       return data
       }
