@@ -53,9 +53,6 @@ export type SyncAgentNamespace = {
 
   /** Keyword component for latest only delivery. Default is `32=late` */
   readonly latestOnlyKeyword: Component;
-
-  /** Adam Chen: Keyword component for snapshots. Default is `32=snapshot` */
-  readonly snapshotKeyword: Component;
 };
 
 export function getNamespace(): SyncAgentNamespace {
@@ -106,8 +103,6 @@ function createDefaultNamespace(): SyncAgentNamespace {
     syncKeyword: KeywordComponent.create('sync'),
     atLeastOnceKeyword: KeywordComponent.create('alo'),
     latestOnlyKeyword: KeywordComponent.create('late'),
-    // Adam Chen Add snapshotKeyword
-    snapshotKeyword: KeywordComponent.create('snapshot'),
   };
   return ret;
 }

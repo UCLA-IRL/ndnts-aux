@@ -1,6 +1,6 @@
 import * as endpoint from '@ndn/endpoint';
 import type { Forwarder } from '@ndn/fw';
-import { Data, type Interest, Name, Signer, type Verifier } from '@ndn/packet';
+import { Component, Data, type Interest, Name, Signer, type Verifier } from '@ndn/packet';
 import { Decoder, Encoder } from '@ndn/tlv';
 import { BufferChunkSource, DataProducer, fetch } from '@ndn/segmented-object';
 import { concatBuffers, fromHex } from '@ndn/util';
@@ -362,7 +362,7 @@ export class SyncAgent implements AsyncDisposable {
     // -- Adam Chen Injection point 2 --
     // NOTE: The following code depend on snapshot naming convention to work.
     // Verify this part if there's a change in naming convention.
-    if (intName.get(this.appPrefix.length)?.equals(getNamespace().snapshotKeyword)) {
+    if (intName.get(this.appPrefix.length)?.equals(Component.from('32=snapshot'))) {
       // console.log('snapshot interest detected, custom routine activated')
       const wire = await this.persistStorage.get(intName.toString());
       if (wire === undefined || wire.length === 0) {
