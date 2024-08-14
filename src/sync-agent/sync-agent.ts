@@ -360,6 +360,8 @@ export class SyncAgent implements AsyncDisposable {
     const intName = interest.name;
 
     // -- Adam Chen Injection point 2 --
+    // NOTE: The following code depend on snapshot naming convention to work.
+    // Verify this part if there's a change in naming convention.
     if (intName.get(this.appPrefix.length)?.equals(getNamespace().snapshotKeyword)) {
       // console.log('snapshot interest detected, custom routine activated')
       const wire = await this.persistStorage.get(intName.toString());
