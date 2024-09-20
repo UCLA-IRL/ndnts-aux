@@ -116,20 +116,20 @@
     "packageJson": {
       "dependencies": [
         "npm:@types/wicg-file-system-access@^2023.10.5",
-        "npm:abortable-iterator@^5.0.1",
-        "npm:cbor-x@^1.5.9",
+        "npm:abortable-iterator@^5.1.0",
+        "npm:cbor-x@^1.6.0",
         "npm:event-iterator@^2.0.0",
         "npm:eventemitter3@^5.0.1",
         "npm:it-pushable@^3.2.3",
-        "npm:jose@^5.4.0",
+        "npm:jose@^5.9.2",
         "npm:p-defer@^4.0.1",
         "npm:streaming-iterables@^8.0.1",
-        "npm:tslib@^2.6.3",
-        "npm:type-fest@^4.20.0",
-        "npm:uuid@^9.0.1",
+        "npm:tslib@^2.7.0",
+        "npm:type-fest@^4.26.1",
+        "npm:uuid@^10.0.0",
         "npm:wait-your-turn@^1.0.1",
         "npm:y-protocols@^1.0.6",
-        "npm:yjs@^13.6.15"
+        "npm:yjs@^13.6.19"
       ]
     }
   }
