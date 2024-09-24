@@ -263,7 +263,6 @@ export class SyncAgent implements AsyncDisposable {
     try {
       const result = fetch(blobName, {
         verifier: this.verifier,
-        modifyInterest: { mustBeFresh: true },
         lifetimeAfterRto: 2000,
         retxLimit: 150, // See Deliveries. 60*1000/(2*200)=150. Default minRto = 150.
       });
