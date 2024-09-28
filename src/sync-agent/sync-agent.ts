@@ -260,8 +260,6 @@ export class SyncAgent implements AsyncDisposable {
     }
 
     const buffers: Uint8Array[] = [];
-    //Adam Chen Debug
-    console.log('SyncAgent fetchBlob fetching: ', blobName.toString());
     try {
       const result = fetch(blobName, {
         verifier: this.verifier,
@@ -283,8 +281,6 @@ export class SyncAgent implements AsyncDisposable {
 
     // Save blob (SA getBlob())
     await this.persistStorage.set(blobName.toString(), blob);
-    //Adam Chen Debug
-    console.log('SyncAgent fetchBlob complete.');
   }
 
   public register(channel: ChannelType, topic: string, handler: (content: Uint8Array, id: Name) => void) {
@@ -362,15 +358,12 @@ export class SyncAgent implements AsyncDisposable {
     // NOTE: The following code depend on snapshot naming convention to work.
     // Verify this part if there's a change in naming convention.
     if (intName.get(this.appPrefix.length)?.equals(Component.from('32=snapshot'))) {
-      // console.log('snapshot interest detected, custom routine activated')
       const wire = await this.persistStorage.get(intName.toString());
       if (wire === undefined || wire.length === 0) {
         // console.warn(`A remote peer is fetching a non-existing object: ${intName.toString()}`);
-        console.log('MISS: SnapshotInterest: ', intName.toString());
         return undefined;
       }
       const data = Decoder.decode(wire, Data);
-      console.log('HIT: SnapshotInterest and Returned Data: ', intName.toString(), data.name.toString());
       return data;
     }
     // -- End Injection point 2 --

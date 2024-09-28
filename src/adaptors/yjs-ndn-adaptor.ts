@@ -43,16 +43,6 @@ export class NdnSvsAdaptor {
     syncAgent.register('blob', 'snapshot', (content) => this.handleSnapshotUpdate(content));
     doc.on('update', this.callback);
     if (useBundler) {
-      // this.#bundler = new Bundler(
-      //   Y.mergeUpdates,
-      //   (content) => this.syncAgent.publishUpdate(this.topic, content),
-      //   {
-      //     thresholdSize: 3000,
-      //     delayMs: 400,
-      //     maxDelayMs: 1600,
-      //   },
-      // );
-
       // Adam Chen Injection Point 1 override
       this.#bundler = new Bundler(
         Y.mergeUpdates,
@@ -115,8 +105,6 @@ export class NdnSvsAdaptor {
     if (this.#bundler) {
       await this.#bundler.produce(content);
     } else {
-      // await this.syncAgent.publishUpdate(this.topic, content);
-
       // Adam Chen Injection point 1 override
       await this.publishUpdate(this.topic, content);
     }
@@ -125,22 +113,15 @@ export class NdnSvsAdaptor {
   // Adam Chen Injection point 1
   private async publishUpdate(topic: string, content: Uint8Array) {
     await this.syncAgent.publishUpdate(topic, content);
-    // await new Promise(r => setTimeout(r,500));
-    // forced wait so that publishUpdate() is completed before we check SV.
-    console.log('-- Injection point 1: Check StateVector / Create Snapshot --');
+
     const stateVector = this.syncAgent.getUpdateSyncSV();
-    console.log('debug: stateVector object: ', stateVector);
     let count = 0;
     for (const [_id, seq] of stateVector) {
       count += seq;
     }
-    console.log('Total count of state vector', count);
-    console.log('The above number should match the state vector in the debug page');
     // Snapshot Interval configuration: Currently hard-coded
     // TODO: make the interval configurable
     if (count % 5 == 0) {
-      console.log("It's time to make a snapshot!");
-      console.log('debug: group prefix: ', this.syncAgent.appPrefix.toString());
       const encodedSV = Encoder.encode(stateVector);
 
       // NOTE: The following code depend on snapshot naming convention to work.
@@ -149,24 +130,10 @@ export class NdnSvsAdaptor {
       const snapshotPrefix = this.syncAgent.appPrefix.append('32=snapshot');
       // New SVS encodings
       const snapshotName = snapshotPrefix.append(new Component(Version.type, encodedSV));
-      console.log('debug: targeted snapshot Prefix (persistStore key): ', snapshotPrefix.toString());
-      // /groupPrefix/32=snapshot/
-      console.log('debug: targeted snapshot Name: ', snapshotName.toString());
-      // /groupPrefix/32=snapshot/54=<stateVector>
-      const decodedSV = Decoder.decode(snapshotName.at(-1).value, StateVector);
-      console.log('debug: decoding encoded SV from snapshotName: ', decodedSV);
-      let count = 0;
-      for (const [_id, seq] of decodedSV) {
-        count += seq;
-      }
-      console.log('debug: decoding encoded SV total packet count: ', count);
-      console.log('This should match the state vector in the debug page and the previous count before encoding');
 
       // Snapshot content generation
       const content = Y.encodeStateAsUpdate(this.doc);
       // its already in UInt8Array (binary), transporting currently without any additional encoding.
-      console.log('yjs backend data: ', content);
-
       // use syncAgent's blob and publish mechanism
       await this.syncAgent.publishBlob('snapshot', content, snapshotName, true);
 
@@ -177,12 +144,9 @@ export class NdnSvsAdaptor {
       //                      Hence no delay is added.
       // first segmented object is at /50=%00
       const firstSegmentName = snapshotName.append('50=%00').toString();
-      console.log('debugTargetName: ', firstSegmentName);
       const firstSegmentPacketEncoded = await this.syncAgent.persistStorage.get(firstSegmentName);
       if (firstSegmentPacketEncoded) {
         const firstSegmentPacket = Decoder.decode(firstSegmentPacketEncoded, Data);
-        console.log('persistentStore check: ', firstSegmentPacket);
-        console.log('persistentStore check Data Name:', firstSegmentPacket.name.toString());
         await this.syncAgent.persistStorage.set(snapshotPrefix.toString(), Encoder.encode(firstSegmentPacket));
       }
     }
@@ -193,14 +157,10 @@ export class NdnSvsAdaptor {
   async handleSnapshotUpdate(snapshotName: Uint8Array) {
     // Maybe it's wise to put this under a try() because it might fail due to network issues.
     const decodedSnapshotName = Decoder.decode(snapshotName, Name);
-    console.log('-- Adam Chen Injection Point 3: Update Latest Snapshot (Received) --');
-    console.log('Handling received snapshot packet with name: ', decodedSnapshotName.toString());
 
     // NOTE: The following code depend on snapshot naming convention to work.
     // Verify this part if there's a change in naming convention.
     const snapshotPrefix = this.syncAgent.appPrefix.append('32=snapshot');
-    // /groupPrefix/32=snapshot/
-    console.log('snapshot prefix in persistStorage: ', snapshotPrefix.toString());
 
     // NOTE: The following code depend on snapshot naming convention to work.
     // Verify this part if there's a change in naming convention.
@@ -222,35 +182,26 @@ export class NdnSvsAdaptor {
       snapshotSVcount += seq;
     }
 
-    // debug
-    console.log('current state vector total count: ', oldSVCount);
-    console.log('snapshot state vector total count: ', snapshotSVcount);
-
     // NOTE: The following code depend on snapshot naming convention to work.
     // Verify this part if there's a change in naming convention.
     if (snapshotSVcount > oldSVCount) {
       const firstSegmentName = decodedSnapshotName.append('50=%00').toString();
-      console.log('Retrieving the following from persist Storage: ', firstSegmentName);
       // Race Condition Note: The callback to here is faster than
       //                      fetchBlob() finish writing to persistStore.
       //                      (in syncAgent before listener callback to here)
       //                      Tested getBlob() to guarantee item arrival
       //                      But ends up having multiple active sessions of fetchBlob(). bad.
       //                      Hence a delay of 1 second.
-      // await this.syncAgent.getBlob(decodedSnapshotName)
       await new Promise((r) => setTimeout(r, 1000));
       const firstSegmentPacketEncoded = await this.syncAgent.persistStorage.get(firstSegmentName);
       if (firstSegmentPacketEncoded) {
-        console.log('Debug: Retrieval results: ', firstSegmentPacketEncoded);
         const firstSegmentPacket = Decoder.decode(firstSegmentPacketEncoded, Data);
-        console.log('Writing this packet: ', firstSegmentPacket.name.toString());
-        console.log('To this location: ', snapshotPrefix.toString());
         // utilize snapshotPrefix above, with the same namingConvention warning.
         // this is done to update the key of the prefix so program return latest when blind fetching.
         this.syncAgent.persistStorage.set(snapshotPrefix.toString(), Encoder.encode(firstSegmentPacket));
         // should set snapshotPrefix to the newest packet.
       } else {
-        console.log('PersistentStorage doesnt have the snapshot yet. Skipping update.');
+        console.debug('PersistentStorage doesnt have the snapshot yet. Skipping update.');
         // If the above race condition fails (reads before data arrives),
         // 'endpoint's blind fetch mechanism' is not updated to latest, should be fine.
       }
