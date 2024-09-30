@@ -2,8 +2,6 @@ import { SyncAgent } from '../sync-agent/mod.ts';
 import * as Y from 'yjs';
 import { Awareness } from 'y-protocols/awareness.js';
 import { Bundler } from './bundler.ts';
-
-// Adam Chen Additional Imports
 import { Decoder, Encoder } from '@ndn/tlv';
 import { Component, Data, Name } from '@ndn/packet';
 import { Version } from '@ndn/naming-convention2';
@@ -43,7 +41,6 @@ export class NdnSvsAdaptor {
     syncAgent.register('blob', 'snapshot', (content) => this.handleSnapshotUpdate(content));
     doc.on('update', this.callback);
     if (useBundler) {
-      // Adam Chen Injection Point 1 override
       this.#bundler = new Bundler(
         Y.mergeUpdates,
         (content) => this.publishUpdate(this.topic, content),
