@@ -34,11 +34,13 @@ export class NdnSvsAdaptor {
     public syncAgent: SyncAgent,
     public readonly doc: Y.Doc,
     public readonly topic: string,
+    public readonly snapshotTopic: string = 'snapshot',
+    public readonly snapshotFrequency: number = 10,
     useBundler: boolean = false,
   ) {
     syncAgent.register('update', topic, (content) => this.handleSyncUpdate(content));
     // Adam Chen callback on receiving a snapshot blob for Injection Point 3
-    syncAgent.register('blob', 'snapshot', (content) => this.handleSnapshotUpdate(content));
+    syncAgent.register('blob', snapshotTopic, (content) => this.handleSnapshotUpdate(content));
     doc.on('update', this.callback);
     if (useBundler) {
       this.#bundler = new Bundler(
@@ -118,7 +120,7 @@ export class NdnSvsAdaptor {
     }
     // Snapshot Interval configuration: Currently hard-coded
     // TODO: make the interval configurable
-    if (count % 5 == 0) {
+    if (count % this.snapshotFrequency == 0) {
       const encodedSV = Encoder.encode(stateVector);
 
       // NOTE: The following code depend on snapshot naming convention to work.
