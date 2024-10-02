@@ -354,7 +354,6 @@ export class SyncAgent implements AsyncDisposable {
   async serve(interest: Interest) {
     const intName = interest.name;
 
-    // -- Adam Chen Injection point 2 --
     // NOTE: The following code depend on snapshot naming convention to work.
     // Verify this part if there's a change in naming convention.
     if (intName.get(this.appPrefix.length)?.equals(Component.from('32=snapshot'))) {
@@ -366,7 +365,6 @@ export class SyncAgent implements AsyncDisposable {
       const data = Decoder.decode(wire, Data);
       return data;
     }
-    // -- End Injection point 2 --
 
     if (intName.length <= this.appPrefix.length + 1) {
       // The name should be at least two components plus app prefix

@@ -39,7 +39,6 @@ export class NdnSvsAdaptor {
     useBundler: boolean = false,
   ) {
     syncAgent.register('update', topic, (content) => this.handleSyncUpdate(content));
-    // Adam Chen callback on receiving a snapshot blob for Injection Point 3
     syncAgent.register('blob', snapshotTopic, (content) => this.handleSnapshotUpdate(content));
     doc.on('update', this.callback);
     if (useBundler) {
@@ -104,12 +103,10 @@ export class NdnSvsAdaptor {
     if (this.#bundler) {
       await this.#bundler.produce(content);
     } else {
-      // Adam Chen Injection point 1 override
       await this.publishUpdate(this.topic, content);
     }
   }
 
-  // Adam Chen Injection point 1
   private async publishUpdate(topic: string, content: Uint8Array) {
     await this.syncAgent.publishUpdate(topic, content);
 
@@ -118,14 +115,13 @@ export class NdnSvsAdaptor {
     for (const [_id, seq] of stateVector) {
       count += seq;
     }
-    // Snapshot Interval configuration: Currently hard-coded
-    // TODO: make the interval configurable
+
     if (count % this.snapshotFrequency == 0) {
       const encodedSV = Encoder.encode(stateVector);
 
       // NOTE: The following code depend on snapshot naming convention to work.
       // Verify this part if there's a change in naming convention.
-      // TODO: Currently naming convention is hard-coded. May need organizing.
+      // NOTE: Currently naming convention is hard-coded. May need organizing.
       const snapshotPrefix = this.syncAgent.appPrefix.append('32=snapshot');
       // New SVS encodings
       const snapshotName = snapshotPrefix.append(new Component(Version.type, encodedSV));
@@ -150,9 +146,7 @@ export class NdnSvsAdaptor {
       }
     }
   }
-  // End Injection point 1
 
-  // -- Adam Chen Injection Point 3: HandleSnapshotUpdate --
   async handleSnapshotUpdate(snapshotName: Uint8Array) {
     // Maybe it's wise to put this under a try() because it might fail due to network issues.
     const decodedSnapshotName = Decoder.decode(snapshotName, Name);
@@ -206,7 +200,6 @@ export class NdnSvsAdaptor {
       }
     }
   }
-  // End Injection point 3
 
   public handleSyncUpdate(content: Uint8Array) {
     // Apply patch
