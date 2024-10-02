@@ -177,6 +177,11 @@ export class NdnSvsAdaptor {
 
     // NOTE: The following code depend on snapshot naming convention to work.
     // Verify this part if there's a change in naming convention.
+    // NOTE: From Github Discussion:
+    // Though, this "update the snapshot response strategy on receiving new snapshot from SVS" logic is somewhat optional in nature. 
+    // It is ran, such that if a blind fetch request reaches an endpoint, endpoint returns a good response. 
+    // Just like snapshot responses, we don't have to guarantee absolute latest when it is about blind fetching.
+    // hence we can just use a rough "total count" for determining if it needs an update.
     if (snapshotSVcount > oldSVCount) {
       const firstSegmentName = decodedSnapshotName.append('50=%00').toString();
       // Race Condition Note: The callback to here is faster than
