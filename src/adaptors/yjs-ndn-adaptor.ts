@@ -34,9 +34,9 @@ export class NdnSvsAdaptor {
     public syncAgent: SyncAgent,
     public readonly doc: Y.Doc,
     public readonly topic: string,
-    public readonly snapshotTopic: string = 'snapshot',
-    public readonly snapshotFrequency: number = 10,
     useBundler: boolean = false,
+    public readonly snapshotFrequency: number = 100,
+    public readonly snapshotTopic: string = 'snapshot',
   ) {
     syncAgent.register('update', topic, (content) => this.handleSyncUpdate(content));
     syncAgent.register('blob', snapshotTopic, (content) => this.handleSnapshotUpdate(content));
@@ -130,7 +130,7 @@ export class NdnSvsAdaptor {
       const content = Y.encodeStateAsUpdate(this.doc);
       // its already in UInt8Array (binary), transporting currently without any additional encoding.
       // use syncAgent's blob and publish mechanism
-      await this.syncAgent.publishBlob('snapshot', content, snapshotName, true);
+      await this.syncAgent.publishBlob(this.snapshotTopic, content, snapshotName, true);
 
       // NOTE: The following code depend on snapshot naming convention to work.
       // Verify this part if there's a change in naming convention.

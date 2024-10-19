@@ -28,6 +28,7 @@ export class Workspace implements AsyncDisposable {
     createNewDoc?: () => Promise<void>;
     useBundler?: boolean;
     groupKeyBits?: Uint8Array;
+    snapshotInterval?: number;
   }) {
     // Always init a new one, and then load.
     if (opts.createNewDoc) {
@@ -54,6 +55,7 @@ export class Workspace implements AsyncDisposable {
       opts.rootDoc,
       'doc',
       opts.useBundler ?? false,
+      opts.snapshotInterval ?? 100,
     );
     const yjsSnapshotMgr = new YjsStateManager(
       () => encodeSyncState(syncAgent!.getUpdateSyncSV()),
