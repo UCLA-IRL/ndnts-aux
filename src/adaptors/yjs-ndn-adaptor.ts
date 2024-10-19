@@ -35,7 +35,7 @@ export class NdnSvsAdaptor {
     public readonly doc: Y.Doc,
     public readonly topic: string,
     useBundler: boolean = false,
-    public readonly snapshotFrequency: number = 100,
+    public readonly snapshotInterval: number = 100,
     public readonly snapshotTopic: string = 'snapshot',
   ) {
     syncAgent.register('update', topic, (content) => this.handleSyncUpdate(content));
@@ -116,7 +116,7 @@ export class NdnSvsAdaptor {
       count += seq;
     }
 
-    if (count % this.snapshotFrequency == 0) {
+    if (count % this.snapshotInterval == 0) {
       const encodedSV = Encoder.encode(stateVector);
 
       // NOTE: The following code depend on snapshot naming convention to work.
