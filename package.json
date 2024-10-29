@@ -23,13 +23,13 @@
     "cbor-x": "^1.6.0",
     "event-iterator": "^2.0.0",
     "eventemitter3": "^5.0.1",
-    "jose": "^5.9.2",
-    "tslib": "^2.7.0",
+    "jose": "^5.9.6",
+    "tslib": "^2.8.0",
     "type-fest": "^4.26.1",
     "uuid": "^10.0.0",
     "wait-your-turn": "^1.0.1",
     "y-protocols": "^1.0.6",
-    "yjs": "^13.6.19"
+    "yjs": "^13.6.20"
   },
   "devDependencies": {
     "@ndn/endpoint": "https://ndnts-nightly.ndn.today/endpoint.tgz",

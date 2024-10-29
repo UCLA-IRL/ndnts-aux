@@ -16,6 +16,8 @@ import { StateVector } from '@ndn/svs';
  *   const doc = new Y.Doc()
  *   const syncAgent = await SyncAgent.create(...)
  *   const provider = new WebsocketProvider(syncAgent, doc, 'doc-topic')
+ *
+ * @warn After snapshot update, only one NdnSvsAdaptor is allowed per workspace instance.
  */
 export class NdnSvsAdaptor {
   private readonly callback = this.docUpdateHandler.bind(this);
@@ -122,6 +124,7 @@ export class NdnSvsAdaptor {
       // NOTE: The following code depend on snapshot naming convention to work.
       // Verify this part if there's a change in naming convention.
       // NOTE: Currently naming convention is hard-coded. May need organizing.
+      // WARNING: It does not support multiple Yjs documents in the same app.
       const snapshotPrefix = this.syncAgent.appPrefix.append('32=snapshot');
       // New SVS encodings
       const snapshotName = snapshotPrefix.append(new Component(Version.type, encodedSV));
