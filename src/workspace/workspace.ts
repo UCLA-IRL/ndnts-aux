@@ -29,6 +29,7 @@ export class Workspace implements AsyncDisposable {
     useBundler?: boolean;
     groupKeyBits?: Uint8Array;
     snapshotInterval?: number;
+    snapshotTopic?: string;
   }) {
     // Always init a new one, and then load.
     if (opts.createNewDoc) {
@@ -47,6 +48,7 @@ export class Workspace implements AsyncDisposable {
       opts.verifier,
       opts.onReset,
       opts.groupKeyBits,
+      opts.snapshotTopic ?? 'snapshot',
     );
 
     // Root doc using CRDT and Sync
@@ -56,6 +58,7 @@ export class Workspace implements AsyncDisposable {
       'doc',
       opts.useBundler ?? false,
       opts.snapshotInterval ?? 100,
+      opts.snapshotTopic ?? 'snapshot',
     );
     const yjsSnapshotMgr = new YjsStateManager(
       () => encodeSyncState(syncAgent!.getUpdateSyncSV()),

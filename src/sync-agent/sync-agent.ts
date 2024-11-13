@@ -41,6 +41,7 @@ export class SyncAgent implements AsyncDisposable {
     readonly latestOnly: LatestOnlyDelivery,
     readonly onReset?: () => void,
     readonly groupKey?: CryptoKey,
+    readonly snapshotTopic: string = 'snapshot',
   ) {
     atLeastOnce.onReset = () => this.onResetTriggered();
     latestOnly.onReset = () => this.onResetTriggered();
@@ -356,7 +357,7 @@ export class SyncAgent implements AsyncDisposable {
 
     // NOTE: The following code depend on snapshot naming convention to work.
     // Verify this part if there's a change in naming convention.
-    if (intName.get(this.appPrefix.length)?.equals(Component.from('32=snapshot'))) {
+    if (intName.get(this.appPrefix.length)?.equals(Component.from('32=' + this.snapshotTopic))) {
       const wire = await this.persistStorage.get(intName.toString());
       if (wire === undefined || wire.length === 0) {
         // console.warn(`A remote peer is fetching a non-existing object: ${intName.toString()}`);
@@ -460,6 +461,7 @@ export class SyncAgent implements AsyncDisposable {
     verifier: Verifier,
     onReset?: () => void,
     groupKeyBits?: Uint8Array,
+    snapshotTopic?: string,
   ) {
     const tempStorage = new InMemoryStorage();
     // Note: we need the signer name to be /[appPrefix]/<nodeId>/KEY/<keyID>
@@ -510,6 +512,7 @@ export class SyncAgent implements AsyncDisposable {
       latestOnly,
       onReset,
       groupKey,
+      snapshotTopic,
     );
     resolver!((content, id) => ret.onUpdate(content, id));
     return ret;
