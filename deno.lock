@@ -1,5 +1,5 @@
 {
-  "version": "3",
+  "version": "4",
   "remote": {
     "https://deno.land/std@0.140.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",
     "https://deno.land/std@0.140.0/_util/os.ts": "3b4c6e27febd119d36a416d7a97bd3b0251b77c88942c8f16ee5953ea13e2e49",
@@ -153,15 +153,15 @@
         "npm:@types/wicg-file-system-access@^2023.10.5",
         "npm:abortable-iterator@^5.1.0",
         "npm:cbor-x@^1.6.0",
-        "npm:event-iterator@^2.0.0",
+        "npm:event-iterator@2",
         "npm:eventemitter3@^5.0.1",
         "npm:it-pushable@^3.2.3",
         "npm:jose@^5.9.6",
         "npm:p-defer@^4.0.1",
         "npm:streaming-iterables@^8.0.1",
-        "npm:tslib@^2.8.0",
-        "npm:type-fest@^4.26.1",
-        "npm:uuid@^10.0.0",
+        "npm:tslib@^2.8.1",
+        "npm:type-fest@^4.27.0",
+        "npm:uuid@10",
         "npm:wait-your-turn@^1.0.1",
         "npm:y-protocols@^1.0.6",
         "npm:yjs@^13.6.20"
