@@ -221,14 +221,14 @@ export abstract class SyncDelivery implements AsyncDisposable {
 // Note: storage is not necessarily a real storage.
 export class AtLeastOnceDelivery extends SyncDelivery {
   constructor(
-    readonly nodeId: Name,
-    readonly fw: Forwarder,
-    readonly syncPrefix: Name,
-    readonly signer: Signer,
-    readonly verifier: Verifier,
+    override readonly nodeId: Name,
+    override readonly fw: Forwarder,
+    override readonly syncPrefix: Name,
+    override readonly signer: Signer,
+    override readonly verifier: Verifier,
     readonly storage: Storage,
     onUpdatePromise: Promise<UpdateEvent>,
-    protected state?: StateVector,
+    protected override state?: StateVector,
   ) {
     super(nodeId, fw, syncPrefix, signer, verifier, onUpdatePromise, state);
   }
@@ -408,15 +408,15 @@ export class AtLeastOnceDelivery extends SyncDelivery {
 // This delivery does not persists anything.
 export class LatestOnlyDelivery extends SyncDelivery {
   constructor(
-    readonly nodeId: Name,
-    readonly fw: Forwarder,
-    readonly syncPrefix: Name,
-    readonly signer: Signer,
-    readonly verifier: Verifier,
+    override readonly nodeId: Name,
+    override readonly fw: Forwarder,
+    override readonly syncPrefix: Name,
+    override readonly signer: Signer,
+    override readonly verifier: Verifier,
     readonly pktStorage: Storage,
     readonly stateStorage: Storage,
     readonly onUpdatePromise: Promise<UpdateEvent>,
-    protected state?: StateVector,
+    protected override state?: StateVector,
   ) {
     super(nodeId, fw, syncPrefix, signer, verifier, onUpdatePromise, state);
   }

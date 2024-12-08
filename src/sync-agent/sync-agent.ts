@@ -464,8 +464,9 @@ export class SyncAgent implements AsyncDisposable {
     snapshotTopic?: string,
   ) {
     const tempStorage = new InMemoryStorage();
-    // Note: we need the signer name to be /[appPrefix]/<nodeId>/KEY/<keyID>
-    // TODO: In future we plan to have each device of user named as /[appPrefix]/<nodeId>/<keyID>
+    // Note: we need the signer name to be /[appPrefix]/<nodeId/demuxer>/KEY/<keyID>
+    // <demuxer> is a timestamp or device ID which is used to distinguish different instances of the same user.
+    // It is part of the nodeID.
     const appPrefix = getNamespace().appPrefixFromNodeId(nodeId);
     // const nodeId = getNamespace().nodeIdFromSigner(signer.name)
     const aloSyncPrefix = appPrefix.append(getNamespace().syncKeyword, getNamespace().atLeastOnceKeyword);

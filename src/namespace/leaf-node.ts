@@ -28,7 +28,7 @@ export class LeafNode extends ExpressingPoint {
   public readonly onSaveStorage = new EventChain<LeafNodeEvents['saveStorage']>();
 
   constructor(
-    public readonly config: LeafNodeOpts,
+    public override readonly config: LeafNodeOpts,
     describe?: string,
   ) {
     super(config, describe);

@@ -27,8 +27,9 @@
       "build.ts"
     ],
     "rules": {
+      "tags": ["recommended"],
       "include": [
-        "deprecated"
+        "no-deprecated-deno-api"
       ]
     }
   },

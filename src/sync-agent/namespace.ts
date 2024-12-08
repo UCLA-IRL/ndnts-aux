@@ -70,20 +70,20 @@ function createDefaultNamespace(): SyncAgentNamespace {
   const ret = {
     /**
      * Extract the node ID from the key name of the signer
-     * @param signerName the signer's name used in KeyLocator. e.g. /ndn-app/alice/KEY/1/NA/XXX
+     * @param signerName the signer's name used in KeyLocator. e.g. /ndn-app/alice/t=1/KEY/1/NA/XXX
      */
     nodeIdFromSigner(signerName: Name): Name {
       return signerName.getPrefix(signerName.length - 4);
     },
     /**
      * Extract the application prefix from the key name of the signer
-     * @param signerName the signer's name used in KeyLocator. e.g. /ndn-app/alice/KEY/1/NA/XXX
+     * @param signerName the signer's name used in KeyLocator. e.g. /ndn-app/alice/t=1/KEY/1/NA/XXX
      */
     appPrefixFromSigner(signerName: Name): Name {
-      return signerName.getPrefix(signerName.length - 5);
+      return signerName.getPrefix(signerName.length - 6);
     },
     appPrefixFromNodeId(nodeId: Name): Name {
-      return nodeId.getPrefix(nodeId.length - 1);
+      return nodeId.getPrefix(nodeId.length - 2);
     },
     latestOnlyKey(pktName: Name): string {
       // Remove the sequence number
@@ -91,7 +91,7 @@ function createDefaultNamespace(): SyncAgentNamespace {
     },
     baseName(nodeId: Name, syncPrefix: Name): Name {
       // append is side-effect free
-      const groupPrefix = syncPrefix.slice(nodeId.length - 1); // nodeId.length - 1 is appPrefix
+      const groupPrefix = syncPrefix.slice(nodeId.length - 2); // nodeId.length - 2 is appPrefix
       return nodeId.append(...groupPrefix.comps);
     },
     syncStateKey(baseName: Name): string {

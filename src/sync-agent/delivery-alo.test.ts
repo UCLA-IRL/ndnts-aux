@@ -34,7 +34,7 @@ class DeliveryTester implements AsyncDisposable {
     this.stores = Array.from({ length: svsCount }, (_, i) => {
       const store = new InMemoryStorage();
       this.#closers.use(store);
-      const responder = new Responder(name`/test/32=node/${i}`, this.fwAB, store);
+      const responder = new Responder(name`/test/32=node/${i}/t=0`, this.fwAB, store);
       this.#closers.use(responder);
       return store;
     });
@@ -43,7 +43,7 @@ class DeliveryTester implements AsyncDisposable {
   async start(timeoutMs: number, signer: Signer = digestSigning, verifier: Verifier = digestSigning) {
     for (let i = 0; this.svsCount > i; i++) {
       const alo = await AtLeastOnceDelivery.create(
-        name`/test/32=node/${i}`,
+        name`/test/32=node/${i}/t=0`,
         this.fwAB,
         this.syncPrefix,
         signer,
@@ -65,7 +65,7 @@ class DeliveryTester implements AsyncDisposable {
 
   async onUpdate(content: Uint8Array, name: Name, instance: SyncDelivery) {
     const receiver = this.alos.findIndex((v) => v === instance);
-    const origin = name.at(name.length - 1).as(GenericNumber);
+    const origin = name.at(name.length - 2).as(GenericNumber);
     const evt = { content, origin, receiver };
     this.events.push(evt);
     await this.updateEvent?.(evt, this);
@@ -85,7 +85,7 @@ class DeliveryTester implements AsyncDisposable {
 
   async dispositData(id: number, seq: number, content: Uint8Array) {
     const data = new Data(
-      name`/test/32=node/${id}/seq=${seq}`,
+      name`/test/32=node/${id}/t=0/seq=${seq}`,
       Data.FreshnessPeriod(60000),
       content,
     );
@@ -170,7 +170,7 @@ Deno.test('Alo.2 No missing due to out-of-order', async () => {
 
     await stopSignal1;
     // For now, the state must not be set
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}`), 0);
+    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 0);
     // But the data should be delivered
     assert.assertEquals(tester.events.length, 2);
 
@@ -184,7 +184,7 @@ Deno.test('Alo.2 No missing due to out-of-order', async () => {
     eventSet = tester.events;
 
     // At last, the state should be updated
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}`), 4);
+    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 4);
   }
 
   // Since it is unordered, we have to sort
@@ -242,15 +242,15 @@ Deno.test('Alo.2.1 Concurrent onUpdates causing gap in the middle', async () => 
 
     // Call onUpdate for 7-8 and 1-2
     await tester.alos[0].handleSyncUpdate(
-      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 7, 8),
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}/t=0`), 7, 8),
     );
     await tester.alos[0].handleSyncUpdate(
-      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 1, 2),
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}/t=0`), 1, 2),
     );
 
     await stopSignal1;
     // For now, the state must be in the middle
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}`), 2);
+    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 2);
     // But the data should be delivered
     assert.assertEquals(tester.events.length, 4);
 
@@ -259,32 +259,32 @@ Deno.test('Alo.2.1 Concurrent onUpdates causing gap in the middle', async () => 
     await tester.dispositData(1, 5, new TextEncoder().encode('E'));
     // Call onUpdate on each of them
     await tester.alos[0].handleSyncUpdate(
-      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 3, 3),
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}/t=0`), 3, 3),
     );
     await tester.alos[0].handleSyncUpdate(
-      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 5, 5),
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}/t=0`), 5, 5),
     );
 
     await stopSignal2;
     // For now, the state must move by 1
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}`), 3);
+    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 3);
 
     // Finally make up all missing data.
     await tester.dispositData(1, 4, new TextEncoder().encode('D'));
     await tester.dispositData(1, 6, new TextEncoder().encode('F'));
     // Call onUpdate on each of them
     await tester.alos[0].handleSyncUpdate(
-      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 4, 4),
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}/t=0`), 4, 4),
     );
     await tester.alos[0].handleSyncUpdate(
-      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}`), 6, 6),
+      new SyncUpdate<Name>(tester.alos[0].syncInst!.get(name`/test/32=node/${1}/t=0`), 6, 6),
     );
 
     await stopSignal3;
     eventSet = tester.events;
 
     // At last, the state should be updated
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}`), 8);
+    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 8);
   }
 
   // Since it is unordered, we have to sort
@@ -379,7 +379,7 @@ Deno.test('Alo.3 Recover after shutdown', async () => {
 
     // Restart alo 0. It is supposed to deliver 'C' again.
     tester.alos[0] = await AtLeastOnceDelivery.create(
-      name`/test/32=node/${0}`,
+      name`/test/32=node/${0}/t=0`,
       tester.fwAB,
       tester.syncPrefix,
       digestSigning,
