@@ -12,7 +12,7 @@ export class Signal<T> extends EventEmitter<UpdateEvents<T>> {
     this.val = initialValue;
   }
 
-  public get value() {
+  public get value(): T {
     return this.val;
   }
 

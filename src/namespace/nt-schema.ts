@@ -22,20 +22,20 @@ export interface NamespaceHandler {
 }
 
 export class NtSchema implements NamespaceHandler, AsyncDisposable {
-  public readonly tree = schemaTree.create<BaseNode>();
+  public readonly tree: schemaTree.Node<BaseNode> = schemaTree.create<BaseNode>();
   protected _fw: Forwarder | undefined;
   protected _attachedPrefix: Name | undefined;
   protected _producer: Producer | undefined;
 
-  get fw() {
+  get fw(): Forwarder | undefined {
     return this._fw;
   }
 
-  get attachedPrefix() {
+  get attachedPrefix(): Name | undefined {
     return this._attachedPrefix;
   }
 
-  public match(name: Name) {
+  public match(name: Name): schemaTree.MatchedObject<BaseNode> | undefined {
     if (!this._attachedPrefix?.isPrefixOf(name)) {
       return undefined;
     }

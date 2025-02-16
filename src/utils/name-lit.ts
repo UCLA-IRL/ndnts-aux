@@ -18,7 +18,7 @@ import { Encoder, NNI } from '@ndn/tlv';
 export const name = (
   templates: TemplateStringsArray,
   ...values: Array<string | Uint8Array | number | Component | Name>
-) => {
+): Name => {
   const stringValues: string[] = values.map((v) => {
     if (typeof v === 'number') {
       v = Encoder.encode(NNI(v));

@@ -1,9 +1,16 @@
-import { createEVDFromStruct, encodeStruct, NNIField, StringField, StructField } from '../utils/field-descriptors.ts';
-import type { Decoder, Encoder } from '@ndn/tlv';
+import {
+  createEVDFromStruct,
+  DescriptorType,
+  encodeStruct,
+  NNIField,
+  StringField,
+  StructField,
+} from '../utils/field-descriptors.ts';
+import type { Decoder, Encoder, EvDecoder } from '@ndn/tlv';
 
 /** The TLV-value of NFD Management's FaceEventNotification. */
 export class FaceEventNotification {
-  static readonly Descriptor = [
+  static readonly Descriptor: DescriptorType<FaceEventNotification> = [
     NNIField(0xc1, 'faceEventKind' as const),
     NNIField(0x69, 'faceId' as const),
     StringField(0x72, 'uri' as const),
@@ -25,7 +32,7 @@ export class FaceEventNotification {
     public flags = 0,
   ) {}
 
-  static readonly EVD = createEVDFromStruct<FaceEventNotification>(
+  static readonly EVD: EvDecoder<FaceEventNotification> = createEVDFromStruct<FaceEventNotification>(
     'FaceEventNotification',
     FaceEventNotification.Descriptor,
   );
@@ -41,13 +48,16 @@ export class FaceEventNotification {
 
 /** The message content (full TLV block) of NFD Management's FaceEventNotification. */
 export class FaceEventMsg {
-  static readonly Descriptor = [
+  static readonly Descriptor: DescriptorType<FaceEventMsg> = [
     StructField(0xc0, 'event' as const, FaceEventNotification.Descriptor, FaceEventNotification),
   ];
 
-  constructor(public event = new FaceEventNotification()) {}
+  constructor(public event: FaceEventNotification = new FaceEventNotification()) {}
 
-  static readonly EVD = createEVDFromStruct<FaceEventMsg>('FaceEventMsg', FaceEventMsg.Descriptor);
+  static readonly EVD: EvDecoder<FaceEventMsg> = createEVDFromStruct<FaceEventMsg>(
+    'FaceEventMsg',
+    FaceEventMsg.Descriptor,
+  );
 
   public static decodeFrom(decoder: Decoder): FaceEventMsg {
     return FaceEventMsg.EVD.decodeValue(new FaceEventMsg(), decoder);

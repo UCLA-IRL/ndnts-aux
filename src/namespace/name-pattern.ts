@@ -17,9 +17,9 @@ export type Pattern = Array<PatternComponent | Component>;
 
 export type Mapping = Record<string, MatchValue>;
 
-export const patternComponentToString = (comp: PatternComponent) => `<${comp.type}=${comp.tag}:${comp.kind}>`;
+export const patternComponentToString = (comp: PatternComponent): string => `<${comp.type}=${comp.tag}:${comp.kind}>`;
 
-export const componentToString = (comp: PatternComponent | Component) =>
+export const componentToString = (comp: PatternComponent | Component): string =>
   comp instanceof Component ? comp.toString() : patternComponentToString(comp);
 
 /**
@@ -27,13 +27,13 @@ export const componentToString = (comp: PatternComponent | Component) =>
  * @param pat The name pattern
  * @returns String representation
  */
-export const toString = (pat: Pattern) => '/' + pat.map(componentToString).join('/');
+export const toString = (pat: Pattern): string => '/' + pat.map(componentToString).join('/');
 
 export const matchStep = (
   pattern: PatternComponent | Component,
   subject: Component,
   mapping: Mapping,
-) => {
+): boolean => {
   if (pattern.type !== subject.type) {
     return false;
   }
@@ -69,7 +69,7 @@ export const match = (
   pattern: Pattern,
   subject: Name,
   mapping: Mapping,
-) => {
+): boolean => {
   // Remove automatically added component
   // ImplicitSha256DigestComponent(0x01) and ParametersSha256DigestComponent(0x02)
   while (subject.length > 0 && subject.at(subject.length - 1).type <= 2) {
@@ -90,7 +90,7 @@ export const match = (
 export const makeStep = (
   pattern: PatternComponent | Component,
   mapping: Mapping,
-) => {
+): Component => {
   if (pattern instanceof Component) {
     return pattern;
   } else {
@@ -115,7 +115,7 @@ export const makeStep = (
 export const make = (
   pattern: Pattern,
   mapping: Mapping,
-) => new Name(pattern.map((p) => makeStep(p, mapping)));
+): Name => new Name(pattern.map((p) => makeStep(p, mapping)));
 
 export const componentFromString = (value: string): Component | PatternComponent => {
   if (value.length === 0) {
@@ -143,6 +143,6 @@ export const fromString = (value: string): Pattern => {
   return value.split('/').map(componentFromString);
 };
 
-export const pattern = ([value]: TemplateStringsArray) => {
+export const pattern = ([value]: TemplateStringsArray): Pattern => {
   return fromString(value);
 };

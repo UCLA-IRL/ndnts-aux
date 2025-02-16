@@ -25,7 +25,9 @@ export type LeafNodeOpts = ExpressingPointOpts & {
 
 export class LeafNode extends ExpressingPoint {
   /** Save a Data into the storage */
-  public readonly onSaveStorage = new EventChain<LeafNodeEvents['saveStorage']>();
+  public readonly onSaveStorage: EventChain<LeafNodeEvents['saveStorage']> = new EventChain<
+    LeafNodeEvents['saveStorage']
+  >();
 
   constructor(
     public override readonly config: LeafNodeOpts,

@@ -187,7 +187,7 @@ export const call = <
   object: MatchedObject<R>,
   key: Key,
   ...args: R[Key] extends ((matchedObj: StrictMatch<R>, ...args: infer Args) => unknown) ? Args : never
-) => {
+): R[Key] extends (matchedObj: StrictMatch<R>, ...params: typeof args) => infer Return ? Return : never => {
   if (object.resource) {
     const func = object.resource[key] as ((
       matchedObj: StrictMatch<R>,
@@ -214,7 +214,7 @@ export const traverse = async <R>(
     post?: (node: Node<R>, path: namePattern.Pattern) => Promise<void>;
   },
   path: namePattern.Pattern = [],
-) => {
+): Promise<void> => {
   await action.pre?.(root, path);
   for (const child of root.fixedChildren) {
     await traverse(child.dest, action, [...path, child.edge]);

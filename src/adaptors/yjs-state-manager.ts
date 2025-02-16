@@ -27,7 +27,7 @@ export class YjsStateManager implements AsyncDisposable {
   }
 
   async [Symbol.asyncDispose]() {
-    return await this.destroy();
+    await this.destroy();
   }
 
   private docUpdateHandler(_update: Uint8Array, origin: undefined) {

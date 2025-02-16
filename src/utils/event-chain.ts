@@ -11,21 +11,21 @@ export const Stop = Symbol('Stop');
 export class EventChain<F extends Callback<any[], unknown>> {
   protected _listeners: Array<F> = [];
 
-  get listeners() {
+  get listeners(): F[] {
     return this._listeners;
   }
 
-  public addListener(fn: F) {
+  public addListener(fn: F): this {
     this._listeners.push(fn);
     return this;
   }
 
-  public removeListener(fn: F) {
+  public removeListener(fn: F): this {
     this._listeners = this._listeners.filter((v) => v !== fn);
     return this;
   }
 
-  public removeAllListeners() {
+  public removeAllListeners(): this {
     this._listeners = [];
     return this;
   }

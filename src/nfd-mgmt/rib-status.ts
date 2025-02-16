@@ -2,16 +2,17 @@ import { Name, TT } from '@ndn/packet';
 import {
   ArrayField,
   createEVDFromStruct,
+  DescriptorType,
   encodeStruct,
   NameField,
   NNIField,
   StructField,
 } from '../utils/field-descriptors.ts';
-import type { Decoder, Encoder } from '@ndn/tlv';
+import type { Decoder, Encoder, EvDecoder } from '@ndn/tlv';
 
 /** NFD Management Route struct. */
 export class Route {
-  static readonly Descriptor = [
+  static readonly Descriptor: DescriptorType<Route> = [
     NNIField(0x69, 'faceId' as const),
     NNIField(0x6f, 'origin' as const),
     NNIField(0x6a, 'cost' as const),
@@ -27,7 +28,7 @@ export class Route {
     public expirationPeriod = 0,
   ) {}
 
-  static readonly EVD = createEVDFromStruct<Route>('Route', Route.Descriptor);
+  static readonly EVD: EvDecoder<Route> = createEVDFromStruct<Route>('Route', Route.Descriptor);
 
   public static decodeFrom(decoder: Decoder): Route {
     return Route.EVD.decodeValue(new Route(), decoder);
@@ -40,17 +41,17 @@ export class Route {
 
 /** NFD Management RibEntry struct. */
 export class RibEntry {
-  static readonly Descriptor = [
+  static readonly Descriptor: DescriptorType<RibEntry> = [
     NameField(TT.Name, 'name' as const),
     ArrayField(StructField(0x81, 'routes' as const, Route.Descriptor, Route)),
   ];
 
   constructor(
-    public name = new Name(),
+    public name: Name = new Name(),
     public routes: Route[] = [],
   ) {}
 
-  static readonly EVD = createEVDFromStruct<RibEntry>('RibEntry', RibEntry.Descriptor);
+  static readonly EVD: EvDecoder<RibEntry> = createEVDFromStruct<RibEntry>('RibEntry', RibEntry.Descriptor);
 
   public static decodeFrom(decoder: Decoder): RibEntry {
     return RibEntry.EVD.decodeValue(new RibEntry(), decoder);
@@ -63,11 +64,13 @@ export class RibEntry {
 
 /** NFD Management RibStatus struct, which is a list of RibEntry. */
 export class RibStatus {
-  static readonly Descriptor = [ArrayField(StructField(0x80, 'entries' as const, RibEntry.Descriptor, RibEntry))];
+  static readonly Descriptor: DescriptorType<RibStatus> = [
+    ArrayField(StructField(0x80, 'entries' as const, RibEntry.Descriptor, RibEntry)),
+  ];
 
   constructor(public entries: RibEntry[] = []) {}
 
-  static readonly EVD = createEVDFromStruct<RibStatus>('RibStatus', RibStatus.Descriptor);
+  static readonly EVD: EvDecoder<RibStatus> = createEVDFromStruct<RibStatus>('RibStatus', RibStatus.Descriptor);
 
   public static decodeFrom(decoder: Decoder): RibStatus {
     return RibStatus.EVD.decodeValue(new RibStatus(), decoder);

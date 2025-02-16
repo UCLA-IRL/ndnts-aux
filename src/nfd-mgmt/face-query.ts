@@ -1,9 +1,16 @@
-import { createEVDFromStruct, encodeStruct, NNIField, StringField, StructField } from '../utils/field-descriptors.ts';
-import type { Decoder, Encoder } from '@ndn/tlv';
+import {
+  createEVDFromStruct,
+  DescriptorType,
+  encodeStruct,
+  NNIField,
+  StringField,
+  StructField,
+} from '../utils/field-descriptors.ts';
+import type { Decoder, Encoder, EvDecoder } from '@ndn/tlv';
 
 /** NFD Management the TLV Value of FaceQueryFilter struct. */
 export class FaceQueryFilterValue {
-  static readonly Descriptor = [
+  static readonly Descriptor: DescriptorType<FaceQueryFilterValue> = [
     NNIField(0x69, 'faceId' as const),
     StringField(0x83, 'uriScheme' as const),
     StringField(0x72, 'uri' as const),
@@ -23,7 +30,7 @@ export class FaceQueryFilterValue {
     public linkType?: number,
   ) {}
 
-  static readonly EVD = createEVDFromStruct<FaceQueryFilterValue>(
+  static readonly EVD: EvDecoder<FaceQueryFilterValue> = createEVDFromStruct<FaceQueryFilterValue>(
     'FaceQueryFilterValue',
     FaceQueryFilterValue.Descriptor,
   );
@@ -39,13 +46,16 @@ export class FaceQueryFilterValue {
 
 /** NFD Management FaceQueryFilter struct. */
 export class FaceQueryFilter {
-  static readonly Descriptor = [
+  static readonly Descriptor: DescriptorType<FaceQueryFilter> = [
     StructField(0x96, 'value' as const, FaceQueryFilterValue.Descriptor, FaceQueryFilterValue),
   ];
 
-  constructor(public value = new FaceQueryFilterValue()) {}
+  constructor(public value: FaceQueryFilterValue = new FaceQueryFilterValue()) {}
 
-  static readonly EVD = createEVDFromStruct<FaceQueryFilter>('FaceQueryFilter', FaceQueryFilter.Descriptor);
+  static readonly EVD: EvDecoder<FaceQueryFilter> = createEVDFromStruct<FaceQueryFilter>(
+    'FaceQueryFilter',
+    FaceQueryFilter.Descriptor,
+  );
 
   public static decodeFrom(decoder: Decoder): FaceQueryFilter {
     return FaceQueryFilter.EVD.decodeValue(new FaceQueryFilter(), decoder);

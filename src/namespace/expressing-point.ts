@@ -44,13 +44,19 @@ export type ExpressingPointOpts = {
 
 export class ExpressingPoint extends BaseNode {
   /** Called when Interest received. Note: calling `need` on this node will not trigger this callback. */
-  public readonly onInterest = new EventChain<ExpressingPointEvents['interest']>();
+  public readonly onInterest: EventChain<ExpressingPointEvents['interest']> = new EventChain<
+    ExpressingPointEvents['interest']
+  >();
 
   /** Verify Interest event. Also verifies Data if this is a LeafNode */
-  public readonly onVerify = new EventChain<ExpressingPointEvents['verify']>();
+  public readonly onVerify: EventChain<ExpressingPointEvents['verify']> = new EventChain<
+    ExpressingPointEvents['verify']
+  >();
 
   /** Searching stored data from the storage */
-  public readonly onSearchStorage = new EventChain<ExpressingPointEvents['searchStorage']>();
+  public readonly onSearchStorage: EventChain<ExpressingPointEvents['searchStorage']> = new EventChain<
+    ExpressingPointEvents['searchStorage']
+  >();
 
   constructor(
     public readonly config: ExpressingPointOpts,
@@ -59,7 +65,11 @@ export class ExpressingPoint extends BaseNode {
     super(describe);
   }
 
-  public searchCache(target: schemaTree.StrictMatch<ExpressingPoint>, interest: Interest, deadline: number) {
+  public searchCache(
+    target: schemaTree.StrictMatch<ExpressingPoint>,
+    interest: Interest,
+    deadline: number,
+  ): Promise<Data | undefined> {
     return this.onSearchStorage.chain(
       undefined,
       (ret) => Promise.resolve(ret ? Stop : [{ target, interest, deadline }]),
@@ -72,7 +82,7 @@ export class ExpressingPoint extends BaseNode {
     pkt: Verifier.Verifiable,
     deadline: number | undefined,
     context: Record<string, unknown>,
-  ) {
+  ): Promise<boolean> {
     const verifyResult = await this.onVerify.chain(
       VerifyResult.Unknown,
       (ret, args) =>

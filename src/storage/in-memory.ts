@@ -4,7 +4,7 @@ import { Storage } from './types.ts';
 export class InMemoryStorage implements Storage {
   private cache: { [name: string]: Uint8Array } = {};
 
-  async get(key: string) {
+  async get(key: string): Promise<Uint8Array | undefined> {
     return this.cache[key];
   }
 
@@ -16,11 +16,11 @@ export class InMemoryStorage implements Storage {
     }
   }
 
-  async has(key: string) {
+  async has(key: string): Promise<boolean> {
     return Object.hasOwn(this.cache, key);
   }
 
-  async delete(key: string) {
+  async delete(key: string): Promise<boolean> {
     if (Object.hasOwn(this.cache, key)) {
       delete this.cache[key];
       return true;

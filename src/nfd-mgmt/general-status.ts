@@ -1,9 +1,15 @@
-import type { Decoder, Encoder } from '@ndn/tlv';
-import { createEVDFromStruct, encodeStruct, NNIField, StringField } from '../utils/field-descriptors.ts';
+import type { Decoder, Encoder, EvDecoder } from '@ndn/tlv';
+import {
+  createEVDFromStruct,
+  DescriptorType,
+  encodeStruct,
+  NNIField,
+  StringField,
+} from '../utils/field-descriptors.ts';
 
 /** NFD Management GeneralStatus struct. */
 export class GeneralStatus {
-  static readonly Descriptor = [
+  static readonly Descriptor: DescriptorType<GeneralStatus> = [
     StringField(0x80, 'nfdVersion' as const),
     NNIField(0x81, 'startTimestamp' as const),
     NNIField(0x82, 'currentTimestamp' as const),
@@ -22,7 +28,10 @@ export class GeneralStatus {
     NNIField(0x9a, 'nUnsatisfiedInterests' as const),
   ];
 
-  static readonly EVD = createEVDFromStruct<GeneralStatus>('GeneralStatus', GeneralStatus.Descriptor);
+  static readonly EVD: EvDecoder<GeneralStatus> = createEVDFromStruct<GeneralStatus>(
+    'GeneralStatus',
+    GeneralStatus.Descriptor,
+  );
 
   public static decodeFrom(decoder: Decoder): GeneralStatus {
     return GeneralStatus.EVD.decodeValue(new GeneralStatus(), decoder);

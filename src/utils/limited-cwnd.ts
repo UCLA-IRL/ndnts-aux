@@ -8,10 +8,10 @@ export class LimitedCwnd extends CongestionAvoidance {
     super(inner.cwnd);
     inner.addEventListener('cwndupdate', () => this.updateCwnd(Math.min(maxCwnd, inner.cwnd)));
   }
-  override increase(now: number, rtt: number) {
+  override increase(now: number, rtt: number): void {
     return this.inner.increase(now, rtt);
   }
-  override decrease(now: number) {
+  override decrease(now: number): void {
     return this.inner.decrease(now);
   }
 }

@@ -1,6 +1,10 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@std/assert@^1.0.11": "1.0.11",
+    "jsr:@std/async@^1.0.10": "1.0.10",
+    "jsr:@std/encoding@^1.0.7": "1.0.7",
+    "jsr:@std/internal@^1.0.5": "1.0.5",
     "npm:@ndn/endpoint@0.0.20250122": "0.0.20250122",
     "npm:@ndn/fw@0.0.20250122": "0.0.20250122",
     "npm:@ndn/keychain@0.0.20250122": "0.0.20250122",
@@ -32,6 +36,23 @@
     "npm:wait-your-turn@^1.0.1": "1.0.1",
     "npm:y-protocols@^1.0.6": "1.0.6_yjs@13.6.23",
     "npm:yjs@^13.6.23": "13.6.23"
+  },
+  "jsr": {
+    "@std/assert@1.0.11": {
+      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/async@1.0.10": {
+      "integrity": "2ff1b1c7d33d1416159989b0f69e59ec7ee8cb58510df01e454def2108b3dbec"
+    },
+    "@std/encoding@1.0.7": {
+      "integrity": "f631247c1698fef289f2de9e2a33d571e46133b38d042905e3eac3715030a82d"
+    },
+    "@std/internal@1.0.5": {
+      "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
+    }
   },
   "npm": {
     "@cbor-extract/cbor-extract-darwin-arm64@2.2.0": {
@@ -1096,6 +1117,11 @@
     "https://deno.land/x/wasmbuild@0.15.1/loader.ts": "8c2fc10e21678e42f84c5135d8ab6ab7dc92424c3f05d2354896a29ccfd02a63"
   },
   "workspace": {
+    "dependencies": [
+      "jsr:@std/assert@^1.0.11",
+      "jsr:@std/async@^1.0.10",
+      "jsr:@std/encoding@^1.0.7"
+    ],
     "packageJson": {
       "dependencies": [
         "npm:@ndn/endpoint@0.0.20250122",

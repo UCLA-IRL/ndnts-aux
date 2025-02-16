@@ -1,4 +1,4 @@
-import { produce } from '@ndn/endpoint';
+import { produce, Producer } from '@ndn/endpoint';
 import type { Forwarder } from '@ndn/fw';
 import { Data, Interest, Name } from '@ndn/packet';
 import { Decoder } from '@ndn/tlv';
@@ -6,7 +6,7 @@ import { Storage } from '../storage/mod.ts';
 
 /** Simple responder used for test */
 export class Responder implements Disposable {
-  public readonly producer;
+  public readonly producer: Producer;
 
   constructor(
     public readonly prefix: Name,
@@ -23,7 +23,7 @@ export class Responder implements Disposable {
     });
   }
 
-  async serve(interest: Interest) {
+  async serve(interest: Interest): Promise<Data | undefined> {
     const intName = interest.name;
     if (intName.length <= this.prefix.length) {
       // The name should be longer than the prefix

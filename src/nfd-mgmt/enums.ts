@@ -43,7 +43,7 @@ export const signatureTypeRepr = (v: number) =>
     5: 'SignatureEd25519',
   })[v] ?? v;
 
-export const nackReasonRepr = (v: number) =>
+export const nackReasonRepr = (v: number): string =>
   ({
     0: '0 None',
     50: '50 Congestion',
@@ -51,7 +51,7 @@ export const nackReasonRepr = (v: number) =>
     150: '150 NoRoute',
   })[v] ?? `${v} Unknown`;
 
-export const routeOriginRepr = (v: number) =>
+export const routeOriginRepr = (v: number): string =>
   ({
     0: 'app',
     255: 'static',

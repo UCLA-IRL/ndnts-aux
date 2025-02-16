@@ -89,19 +89,19 @@ export abstract class SyncDelivery implements AsyncDisposable {
   /**
    * True if the Sync has started, even in reset state.
    */
-  public get ready() {
+  public get ready(): boolean {
     return this._ready;
   }
 
-  public get syncInst() {
+  public get syncInst(): SvSync | undefined {
     return this._syncInst;
   }
 
-  public get syncNode() {
+  public get syncNode(): SyncNode<SvSync.ID> | undefined {
     return this._syncNode;
   }
 
-  public get syncState() {
+  public get syncState(): StateVector {
     return new StateVector(this.state);
   }
 
@@ -109,11 +109,11 @@ export abstract class SyncDelivery implements AsyncDisposable {
    * The callback on Sync updates. Note that AtLeastOnce requires all callbacks to be registered before Sync starts.
    * Therefore, we fix the number of callbacks to one and leave demultiplexing to the SyncAgent.
    */
-  public get onUpdate() {
+  public get onUpdate(): UpdateEvent | undefined {
     return this._onUpdate;
   }
 
-  public get onReset() {
+  public get onReset(): (() => void) | undefined {
     return this._onReset;
   }
 
@@ -145,11 +145,11 @@ export abstract class SyncDelivery implements AsyncDisposable {
     }
   }
 
-  async [Symbol.asyncDispose]() {
+  async [Symbol.asyncDispose](): Promise<void> {
     return await this.destroy();
   }
 
-  public async reset() {
+  public async reset(): Promise<void> {
     if (this._syncInst === undefined || !this._ready) {
       throw new Error('Please do not reset before start.');
     }
@@ -203,7 +203,7 @@ export abstract class SyncDelivery implements AsyncDisposable {
     }
   }
 
-  get seqNum() {
+  get seqNum(): number {
     return this.syncNode!.seqNum;
   }
 
@@ -369,7 +369,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     verifier: Verifier,
     storage: Storage,
     onUpdatePromise: Promise<UpdateEvent>,
-  ) {
+  ): Promise<AtLeastOnceDelivery> {
     // const nodeId = getNamespace().nodeIdFromSigner(signer.name)
     const baseName = getNamespace().baseName(nodeId, syncPrefix);
     const encoded = await storage.get(getNamespace().syncStateKey(baseName));
@@ -380,7 +380,7 @@ export class AtLeastOnceDelivery extends SyncDelivery {
     return new AtLeastOnceDelivery(nodeId, fw, syncPrefix, signer, verifier, storage, onUpdatePromise, syncState);
   }
 
-  override async destroy() {
+  override async destroy(): Promise<void> {
     return await super.destroy(this.storage);
   }
 
@@ -477,7 +477,7 @@ export class LatestOnlyDelivery extends SyncDelivery {
     pktStorage: Storage,
     stateStorage: Storage,
     onUpdatePromise: Promise<UpdateEvent>,
-  ) {
+  ): Promise<LatestOnlyDelivery> {
     // Load state is still required to avoid sequence number conflict
     // const nodeId = getNamespace().nodeIdFromSigner(signer.name)
     const baseName = getNamespace().baseName(nodeId, syncPrefix);
@@ -499,7 +499,7 @@ export class LatestOnlyDelivery extends SyncDelivery {
     );
   }
 
-  override async destroy() {
+  override async destroy(): Promise<void> {
     return await super.destroy(this.stateStorage);
   }
 }

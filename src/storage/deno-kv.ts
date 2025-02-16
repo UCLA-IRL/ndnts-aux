@@ -9,7 +9,7 @@ export class DenoKvStorage implements Storage {
   ) {
   }
 
-  public static async create(path?: string) {
+  public static async create(path?: string): Promise<DenoKvStorage> {
     return new DenoKvStorage(await Deno.openKv(path));
   }
 

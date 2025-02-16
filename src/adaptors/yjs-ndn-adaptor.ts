@@ -26,7 +26,7 @@ export class NdnSvsAdaptor {
   #awarenessDocId: string | undefined;
   #awareness: Awareness | undefined;
   // Required as a Yjs provider
-  public get awareness() {
+  public get awareness(): Awareness | undefined {
     return this.#awareness;
   }
 

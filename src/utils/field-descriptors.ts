@@ -2,8 +2,8 @@ import { Name } from '@ndn/packet';
 import { type Decodable, Decoder, type Encodable, Encoder, EvDecoder, NNI } from '@ndn/tlv';
 import { toUtf8 } from '@ndn/util';
 
-export const decodeNNI = ({ nni }: Decoder.Tlv) => nni;
-export const decodeString = ({ text }: Decoder.Tlv) => text;
+export const decodeNNI = ({ nni }: Decoder.Tlv): number => nni;
+export const decodeString = ({ text }: Decoder.Tlv): string => text;
 
 export type FieldDescriptor<T, K> = {
   tt: number;
@@ -107,3 +107,5 @@ export const ArrayField = <T, K>(descriptor: FieldDescriptor<T, K>): FieldDescri
   },
   repeat: true,
 });
+
+export type DescriptorType<T extends object> = ValidFieldDescriptorOf<T>[];

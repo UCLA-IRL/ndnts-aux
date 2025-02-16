@@ -1,5 +1,5 @@
 import { assertEquals } from 'assert';
-import { sleep } from 'sleep';
+import { sleep } from '../utils/mod.ts';
 import { Bundler } from './bundler.ts';
 
 export const b = ([value]: TemplateStringsArray) => new TextEncoder().encode(value);

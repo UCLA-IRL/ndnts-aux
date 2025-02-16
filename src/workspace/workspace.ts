@@ -30,7 +30,7 @@ export class Workspace implements AsyncDisposable {
     groupKeyBits?: Uint8Array;
     snapshotInterval?: number;
     snapshotTopic?: string;
-  }) {
+  }): Promise<Workspace> {
     // Always init a new one, and then load.
     if (opts.createNewDoc) {
       await opts.createNewDoc();
@@ -92,13 +92,13 @@ export class Workspace implements AsyncDisposable {
     this.syncAgent.fire();
   }
 
-  public async destroy() {
+  public async destroy(): Promise<void> {
     await this.syncAgent.destroy();
     await this.yjsSnapshotMgr.destroy();
     // persistStore is not created by workspace
   }
 
-  async [Symbol.asyncDispose]() {
+  async [Symbol.asyncDispose](): Promise<void> {
     return await this.destroy();
   }
 }

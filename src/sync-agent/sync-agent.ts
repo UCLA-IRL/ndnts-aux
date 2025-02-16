@@ -26,8 +26,8 @@ type InnerData = {
 export class SyncAgent implements AsyncDisposable {
   private _ready = false;
   readonly listeners: { [key: string]: (content: Uint8Array, id: Name) => void } = {};
-  readonly producer;
-  readonly trafficAttractor;
+  readonly producer: endpoint.Producer;
+  readonly trafficAttractor: endpoint.Producer;
 
   private constructor(
     readonly nodeId: Name,
@@ -78,7 +78,7 @@ export class SyncAgent implements AsyncDisposable {
     this.producer.close();
   }
 
-  async [Symbol.asyncDispose]() {
+  async [Symbol.asyncDispose](): Promise<void> {
     return await this.destroy();
   }
 
@@ -87,7 +87,7 @@ export class SyncAgent implements AsyncDisposable {
     this.latestOnly.reset();
   }
 
-  public get ready() {
+  public get ready(): boolean {
     return this._ready;
   }
 
@@ -293,7 +293,7 @@ export class SyncAgent implements AsyncDisposable {
   }
 
   // getBlob returns either a blob or a segment
-  public async getBlob(name: Name) {
+  public async getBlob(name: Name): Promise<Uint8Array | undefined> {
     // TODO: To avoid waste of space, we may want to do reassembly in this function
     const ret = await this.persistStorage.get(name.toString());
     if (ret !== undefined) {
@@ -307,7 +307,7 @@ export class SyncAgent implements AsyncDisposable {
 
   // publishBlob segments and produce a blob object
   // Please make sure the blob's name does not conflict with internal packets' names
-  public async publishBlob(topic: string, blobContent: Uint8Array, name?: Name, push = true) {
+  public async publishBlob(topic: string, blobContent: Uint8Array, name?: Name, push = true): Promise<Name> {
     // Put original content (SA getBlob())
     if (name === undefined || name.length === 0) {
       name = getNamespace().genBlobName(this.appPrefix);
@@ -340,7 +340,7 @@ export class SyncAgent implements AsyncDisposable {
     }
   }
 
-  public async publishStatus(topic: string, content: Uint8Array) {
+  public async publishStatus(topic: string, content: Uint8Array): Promise<void> {
     // TODO (future): Do we need to do something else to make it better?
     if (content.length > 6000) {
       console.error(`Too large status for topic ${topic}: ${content.length}. Please use the blob channel.`);
@@ -352,7 +352,7 @@ export class SyncAgent implements AsyncDisposable {
     throw new Error('Not implemented');
   }
 
-  async serve(interest: Interest) {
+  async serve(interest: Interest): Promise<Data | undefined> {
     const intName = interest.name;
 
     // NOTE: The following code depend on snapshot naming convention to work.
@@ -449,7 +449,7 @@ export class SyncAgent implements AsyncDisposable {
     });
   }
 
-  public getUpdateSyncSV() {
+  public getUpdateSyncSV(): StateVector {
     return new StateVector(this.atLeastOnce.syncState);
   }
 
@@ -462,7 +462,7 @@ export class SyncAgent implements AsyncDisposable {
     onReset?: () => void,
     groupKeyBits?: Uint8Array,
     snapshotTopic?: string,
-  ) {
+  ): Promise<SyncAgent> {
     const tempStorage = new InMemoryStorage();
     // Note: we need the signer name to be /[appPrefix]/<nodeId/demuxer>/KEY/<keyID>
     // <demuxer> is a timestamp or device ID which is used to distinguish different instances of the same user.

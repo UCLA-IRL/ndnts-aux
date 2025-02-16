@@ -38,12 +38,12 @@ export class CertStorage implements SecurityAgent {
   }
 
   /** Obtain the signer */
-  get signer() {
+  get signer(): Signer {
     return this._signer!;
   }
 
   /** Obtain this node's own certificate */
-  get certificate() {
+  get certificate(): Certificate {
     return this.ownCertificate;
   }
 
@@ -139,7 +139,7 @@ export class CertStorage implements SecurityAgent {
     fw: Forwarder,
     prvKeyBits: Uint8Array,
     interestLifetime = 5000,
-  ) {
+  ): Promise<CertStorage> {
     const result = new CertStorage(
       trustAnchor,
       ownCertificate,

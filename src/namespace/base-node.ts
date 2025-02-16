@@ -11,15 +11,15 @@ export interface BaseNodeEvents {
 }
 
 export class BaseNode {
-  public readonly onAttach = new EventChain<BaseNodeEvents['attach']>();
-  public readonly onDetach = new EventChain<BaseNodeEvents['detach']>();
+  public readonly onAttach: EventChain<BaseNodeEvents['attach']> = new EventChain<BaseNodeEvents['attach']>();
+  public readonly onDetach: EventChain<BaseNodeEvents['detach']> = new EventChain<BaseNodeEvents['detach']>();
   protected handler: NamespaceHandler | undefined = undefined;
 
   constructor(public readonly describe?: string) {
     this.describe ??= this.constructor.name;
   }
 
-  public get namespaceHandler() {
+  public get namespaceHandler(): NamespaceHandler | undefined {
     return this.handler;
   }
 
@@ -38,7 +38,7 @@ export class BaseNode {
     pkt: Verifier.Verifiable,
     deadline: number | undefined,
     context: Record<string, unknown>,
-  ) {
+  ): Promise<boolean> {
     console.warn(`Silently drop unverified packet ${matched.name.toString()}`);
     pkt;
     deadline;
@@ -49,7 +49,7 @@ export class BaseNode {
   public storeData(
     matched: schemaTree.StrictMatch<BaseNode>,
     data: Data,
-  ) {
+  ): Promise<void> {
     console.warn(`Not store unexpected Data ${matched.name.toString()}`);
     data;
     return Promise.resolve();
