@@ -1,6 +1,6 @@
 {
   "name": "@ucla-irl/ndnts-aux",
-  "version": "4.0.6",
+  "version": "4.1.0",
   "license": "ISC",
   "exports": {
     ".": "./mod.ts",
@@ -64,10 +64,8 @@
     "event-iterator": "npm:event-iterator@^2.0.0",
     "eventemitter3": "npm:eventemitter3@^5.0.1",
     "jose": "npm:jose@^5.9.6",
-    "tslib": "npm:tslib@^2.8.1",
     "type-fest": "npm:type-fest@^4.34.1",
     "uuid": "npm:uuid@^11.0.5",
-    "wait-your-turn": "npm:wait-your-turn@^1.0.1",
     "y-protocols": "npm:y-protocols@^1.0.6",
     "yjs": "npm:yjs@^13.6.23",
     "@ndn/endpoint": "npm:@ndn/endpoint@0.0.20250122",
@@ -89,7 +87,6 @@
     "@types/wicg-file-system-access": "npm:@types/wicg-file-system-access@^2023.10.5",
     "abortable-iterator": "npm:abortable-iterator@^5.1.0",
     "it-pushable": "npm:it-pushable@^3.2.3",
-    "p-defer": "npm:p-defer@^4.0.1",
     "streaming-iterables": "npm:streaming-iterables@^8.0.1"
   },
   "nodeModulesDir": "auto"
