@@ -1,26 +1,25 @@
 # NDNts Auxiliary Package for Web and Deno
 
+[![JSR @ucla-irl/ndnts-aux](https://jsr.io/badges/@ucla-irl/ndnts-aux)](https://jsr.io/@ucla-irl/ndnts-aux)
+[![ci](https://github.com/UCLA-IRL/ndnts-aux/actions/workflows/lint-code.yaml/badge.svg)](https://github.com/UCLA-IRL/ndnts-aux/actions/workflows/lint-code.yaml)
+
+
 ## Usage
 
-To install this module as a NPM module:
+To install this module as a JSR module:
 ```bash
-# Set the scope URL to GitHub
-echo "@ucla-irl:registry=https://npm.pkg.github.com" >> .npmrc
-# Install package using pnpm
-pnpm add @ucla-irl/ndnts-aux
+# Install package from JSR using pnpm
+pnpm dlx jsr add @ucla-irl/ndnts-aux
 ```
-
-If you are asked to login, create a GitHub access token and use the following command:
-```bash
-pnpm login --scope=@ucla-irl --auth-type=legacy --registry=https://npm.pkg.github.com
-# Use the token for password
-```
-
-The current release does not currently mark peer-dependencies.
-So please ignore the warnings given by `pnpm`.
-Just install NDNts nightly build as usual and it will work.
 
 Unfortunately, the denoland release does not work. Please ignore that.
+
+## Development
+
+To install dependencies:
+```bash
+deno install --allow-scripts
+```
 
 ## TODOs
 
