@@ -21,25 +21,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
       - name: Install dependencies
-        run: pnpm install
+        run: deno install --allow-scripts
       - name: Deno lint
-        run: pnpm lint
+        run: deno lint
       - name: Deno test
-        run: pnpm test
+        run: deno test --no-check
       - name: Deno format check
         run: deno fmt --check

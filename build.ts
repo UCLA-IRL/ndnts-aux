@@ -1,5 +1,5 @@
 import { build, emptyDir } from 'https://deno.land/x/dnt@0.39.0/mod.ts';
-import pnpmPkg from './package.json' with { type: 'json' };
+import npmPkg from './package.json' with { type: 'json' };
 
 const OUTPUT_DIR = './dist';
 
@@ -56,7 +56,7 @@ if (import.meta.main) {
     typeCheck: false,
     packageManager: 'pnpm',
     // package.json properties
-    package: pnpmPkg,
+    package: npmPkg,
     postBuild() {
       // steps to run after building and before running the tests
       Deno.copyFileSync('LICENSE', `${OUTPUT_DIR}/LICENSE`);

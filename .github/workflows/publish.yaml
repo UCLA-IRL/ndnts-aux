@@ -39,9 +39,9 @@ jobs:
         with:
           deno-version: v2.x
       - name: Install dependencies
-        run: pnpm install
+        run: deno install --allow-scripts
       - name: DNT build
-        run: pnpm build
+        run: deno run -A ./build.ts
       - name: Login
         run: |
           pnpm set registry "http://npm.pkg.github.com/"

@@ -1,11 +1,8 @@
 import { Component } from '@ndn/packet';
-import { assert as assertMod } from '../dep.ts';
+import { assert, assertEquals } from 'assert';
 import { name } from '../utils/mod.ts';
 import * as namePattern from './name-pattern.ts';
 import { pattern } from './name-pattern.ts';
-
-const assert = assertMod.assert as ((expr: unknown, msg?: string) => void);
-const { assertEquals } = assertMod;
 
 Deno.test('Name Pattern construction', () => {
   const pat = pattern`/8=base/<8=peerId:string>/<58=sequence:number>`;

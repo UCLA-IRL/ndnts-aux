@@ -1,13 +1,8 @@
-// import { Component, Name } from '@ndn/packet';
-import { assert as assertMod } from '../dep.ts';
+import { assertEquals, assertExists } from 'assert';
 import { name } from '../utils/mod.ts';
 import * as namePattern from './name-pattern.ts';
 import * as schemaTree from './schema-tree.ts';
 import { pattern } from './name-pattern.ts';
-
-// const assert = assertMod.assert as ((expr: unknown, msg?: string) => void);
-const assertExists = assertMod.assertExists as (<T>(actual: T, msg?: string) => void);
-const { assertEquals } = assertMod;
 
 type TestRec = {
   nodeId: string;

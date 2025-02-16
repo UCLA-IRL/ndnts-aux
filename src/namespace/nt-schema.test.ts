@@ -1,4 +1,4 @@
-import { assert } from '../dep.ts';
+import { assert, assertEquals, assertExists, assertRejects } from 'assert';
 import { AsyncDisposableStack, name, Responder } from '../utils/mod.ts';
 import { consume } from '@ndn/endpoint';
 import { Data, digestSigning, SigType } from '@ndn/packet';
@@ -70,27 +70,27 @@ Deno.test('NtSchema.1 Basic Interest and Data', async () => {
     Tree.apply(leafNode, { 'recordId': 'rec1' }),
     'need',
   );
-  assert.assertExists(recved1);
-  assert.assert(recved1.name.equals(name`${appPrefix}/records/8=rec1`));
-  assert.assertEquals(recved1.content, b`Hello,`);
+  assertExists(recved1);
+  assert(recved1.name.equals(name`${appPrefix}/records/8=rec1`));
+  assertEquals(recved1.content, b`Hello,`);
 
   const recved2 = await Tree.call(
     Tree.cast(schema.match(name`${appPrefix}/records/8=rec2`), LeafNode)!,
     'need',
   );
-  assert.assertExists(recved2);
-  assert.assert(recved2.name.equals(name`${appPrefix}/records/8=rec2`));
-  assert.assertEquals(recved2.content, b`World.`);
+  assertExists(recved2);
+  assert(recved2.name.equals(name`${appPrefix}/records/8=rec2`));
+  assertEquals(recved2.content, b`World.`);
 
   // Test NTSchema's producing data (on request, without storage)
   const recved3 = await consume(name`${appPrefix}/records/8=rec3`, {
     verifier: digestSigning,
     fw: fwB,
   });
-  assert.assertExists(recved3);
-  assert.assert(recved3.name.equals(name`${appPrefix}/records/8=rec3`));
-  assert.assertEquals(recved3.freshnessPeriod, 60000);
-  assert.assertEquals(recved3.content, b`Hello, World.`);
+  assertExists(recved3);
+  assert(recved3.name.equals(name`${appPrefix}/records/8=rec3`));
+  assertEquals(recved3.freshnessPeriod, 60000);
+  assertEquals(recved3.content, b`Hello, World.`);
 });
 
 Deno.test('NtSchema.2 Data Storage', async () => {
@@ -150,27 +150,27 @@ Deno.test('NtSchema.2 Data Storage', async () => {
     verifier: digestSigning,
     fw: fwB,
   });
-  assert.assertExists(received);
-  assert.assert(received.name.equals(name`${appPrefix}/records/8=rec2`));
-  assert.assertEquals(received.freshnessPeriod, 60000);
-  assert.assertEquals(received.contentType, 0);
-  assert.assertEquals(received.content, b`World.`);
+  assertExists(received);
+  assert(received.name.equals(name`${appPrefix}/records/8=rec2`));
+  assertEquals(received.freshnessPeriod, 60000);
+  assertEquals(received.contentType, 0);
+  assertEquals(received.content, b`World.`);
 
   // Test NTSchema can cache received Data
   const recved1 = await Tree.call(
     Tree.apply(leafNode, { 'recordId': 'rec1' }),
     'need',
   );
-  assert.assertExists(recved1);
+  assertExists(recved1);
   // Remove the responder and test again
   await storageB.delete(data1.name.toString());
   const recved2 = await Tree.call(
     Tree.apply(leafNode, { 'recordId': 'rec1' }),
     'need',
   );
-  assert.assertExists(recved2);
-  assert.assert(recved2.name.equals(name`${appPrefix}/records/8=rec1`));
-  assert.assertEquals(recved2.content, b`Hello,`);
+  assertExists(recved2);
+  assert(recved2.name.equals(name`${appPrefix}/records/8=rec1`));
+  assertEquals(recved2.content, b`Hello,`);
 });
 
 Deno.test('NtSchema.3 Verification', async () => {
@@ -254,19 +254,19 @@ Deno.test('NtSchema.3 Verification', async () => {
     Tree.apply(leafNode, { 'recordId': 'rec1' }),
     'need',
   );
-  assert.assertExists(recved1);
+  assertExists(recved1);
   const recved2 = await Tree.call(
     Tree.apply(leafNode, { 'recordId': 'rec2' }),
     'need',
   );
-  assert.assertExists(recved2);
-  assert.assertRejects(() =>
+  assertExists(recved2);
+  assertRejects(() =>
     Tree.call(
       Tree.apply(leafNode, { 'recordId': 'rec3' }),
       'need',
     )
   );
-  assert.assertRejects(() =>
+  assertRejects(() =>
     Tree.call(
       Tree.apply(leafNode, { 'recordId': 'rec4' }),
       'need',

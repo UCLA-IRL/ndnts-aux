@@ -1,7 +1,6 @@
-import { assert as assertMod, sleep } from '../dep.ts';
+import { assertEquals } from 'assert';
+import { sleep } from 'sleep';
 import { Bundler } from './bundler.ts';
-
-const { assertEquals } = assertMod;
 
 export const b = ([value]: TemplateStringsArray) => new TextEncoder().encode(value);
 

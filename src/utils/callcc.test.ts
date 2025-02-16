@@ -1,7 +1,5 @@
-import { assert } from '../dep.ts';
+import { assertEquals } from 'assert';
 import { callCC } from './callcc.ts';
-
-const { assertEquals } = assert;
 
 const multiplyArray = (nums: number[]): number => {
   const multiplyArrayRecur = (i: number, prod: number, exit: (result: number) => void): number => {

@@ -5,11 +5,8 @@ import { Data, Interest, ValidityPeriod } from '@ndn/packet';
 import { Certificate, CertNaming, createSigner, createVerifier, ECDSA, generateSigningKey } from '@ndn/keychain';
 import { InMemoryStorage } from '../storage/mod.ts';
 import { CertStorage } from './cert-storage.ts';
-import { assert as assertMod } from '../dep.ts';
+import { assertEquals, assertRejects } from 'assert';
 import { AsyncDisposableStack, name, Responder } from '../utils/mod.ts';
-
-// const assert = assertMod.assert as ((expr: unknown, msg?: string) => void);
-const { assertEquals, assertRejects } = assertMod;
 
 Deno.test('Known certificates', async () => {
   await using closers = new AsyncDisposableStack();

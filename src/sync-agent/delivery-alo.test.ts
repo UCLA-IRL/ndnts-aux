@@ -3,7 +3,8 @@ import { Data, digestSigning, Name, type Signer, type Verifier } from '@ndn/pack
 import { GenericNumber } from '@ndn/naming-convention2';
 import { Encoder } from '@ndn/tlv';
 import { SyncUpdate } from '@ndn/sync-api';
-import { assert, hex } from '../dep.ts';
+import { assertEquals } from 'assert';
+import * as hex from 'hex';
 import { AtLeastOnceDelivery, SyncDelivery } from './deliveries.ts';
 import { AsyncDisposableStack, name, Responder } from '../utils/mod.ts';
 import { InMemoryStorage } from '../storage/mod.ts';
@@ -133,13 +134,13 @@ Deno.test('Alo.1 Basic test', async () => {
 
   // Since it is unordered, we have to sort
   eventSet.sort(compareEvent);
-  assert.assertEquals(eventSet.length, 2);
-  assert.assertEquals(eventSet[0], {
+  assertEquals(eventSet.length, 2);
+  assertEquals(eventSet[0], {
     content: new TextEncoder().encode('0-Hello'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[1], {
+  assertEquals(eventSet[1], {
     content: new TextEncoder().encode('1-World'),
     origin: 1,
     receiver: 0,
@@ -170,9 +171,9 @@ Deno.test('Alo.2 No missing due to out-of-order', async () => {
 
     await stopSignal1;
     // For now, the state must not be set
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 0);
+    assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 0);
     // But the data should be delivered
-    assert.assertEquals(tester.events.length, 2);
+    assertEquals(tester.events.length, 2);
 
     // Finally make up those missing data.
     await tester.dispositData(1, 1, new TextEncoder().encode('A'));
@@ -184,28 +185,28 @@ Deno.test('Alo.2 No missing due to out-of-order', async () => {
     eventSet = tester.events;
 
     // At last, the state should be updated
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 4);
+    assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 4);
   }
 
   // Since it is unordered, we have to sort
   eventSet.sort(compareEvent);
-  assert.assertEquals(eventSet.length, 4);
-  assert.assertEquals(eventSet[0], {
+  assertEquals(eventSet.length, 4);
+  assertEquals(eventSet[0], {
     content: new TextEncoder().encode('A'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[1], {
+  assertEquals(eventSet[1], {
     content: new TextEncoder().encode('B'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[2], {
+  assertEquals(eventSet[2], {
     content: new TextEncoder().encode('C'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[3], {
+  assertEquals(eventSet[3], {
     content: new TextEncoder().encode('D'),
     origin: 1,
     receiver: 0,
@@ -250,9 +251,9 @@ Deno.test('Alo.2.1 Concurrent onUpdates causing gap in the middle', async () => 
 
     await stopSignal1;
     // For now, the state must be in the middle
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 2);
+    assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 2);
     // But the data should be delivered
-    assert.assertEquals(tester.events.length, 4);
+    assertEquals(tester.events.length, 4);
 
     // Make up some missing data. (No 3, 5)
     await tester.dispositData(1, 3, new TextEncoder().encode('C'));
@@ -267,7 +268,7 @@ Deno.test('Alo.2.1 Concurrent onUpdates causing gap in the middle', async () => 
 
     await stopSignal2;
     // For now, the state must move by 1
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 3);
+    assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 3);
 
     // Finally make up all missing data.
     await tester.dispositData(1, 4, new TextEncoder().encode('D'));
@@ -284,48 +285,48 @@ Deno.test('Alo.2.1 Concurrent onUpdates causing gap in the middle', async () => 
     eventSet = tester.events;
 
     // At last, the state should be updated
-    assert.assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 8);
+    assertEquals(tester.alos[0].syncState.get(name`/test/32=node/${1}/t=0`), 8);
   }
 
   // Since it is unordered, we have to sort
   eventSet.sort(compareEvent);
-  assert.assertEquals(eventSet.length, 8);
-  assert.assertEquals(eventSet[0], {
+  assertEquals(eventSet.length, 8);
+  assertEquals(eventSet[0], {
     content: new TextEncoder().encode('A'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[1], {
+  assertEquals(eventSet[1], {
     content: new TextEncoder().encode('B'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[2], {
+  assertEquals(eventSet[2], {
     content: new TextEncoder().encode('C'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[3], {
+  assertEquals(eventSet[3], {
     content: new TextEncoder().encode('D'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[4], {
+  assertEquals(eventSet[4], {
     content: new TextEncoder().encode('E'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[5], {
+  assertEquals(eventSet[5], {
     content: new TextEncoder().encode('F'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[6], {
+  assertEquals(eventSet[6], {
     content: new TextEncoder().encode('G'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[7], {
+  assertEquals(eventSet[7], {
     content: new TextEncoder().encode('H'),
     origin: 1,
     receiver: 0,
@@ -348,7 +349,7 @@ Deno.test('Alo.3 Recover after shutdown', async () => {
       }
       return Promise.resolve();
     });
-    await tester.start(2000);
+    await tester.start(60000);
 
     // Provide A and C. (no B)
     await tester.alos[1].produce(new TextEncoder().encode('A'));
@@ -362,13 +363,13 @@ Deno.test('Alo.3 Recover after shutdown', async () => {
 
     // Assert we have 'A' and 'C'
     eventSet = tester.events.toSorted(compareEvent);
-    assert.assertEquals(eventSet.length, 2);
-    assert.assertEquals(eventSet[0], {
+    assertEquals(eventSet.length, 2);
+    assertEquals(eventSet[0], {
       content: new TextEncoder().encode('A'),
       origin: 1,
       receiver: 0,
     });
-    assert.assertEquals(eventSet[1], {
+    assertEquals(eventSet[1], {
       content: new TextEncoder().encode('C'),
       origin: 1,
       receiver: 0,
@@ -399,23 +400,23 @@ Deno.test('Alo.3 Recover after shutdown', async () => {
 
   // Since it is unordered, we have to sort
   eventSet.sort(compareEvent);
-  assert.assertEquals(eventSet.length, 4);
-  assert.assertEquals(eventSet[0], {
+  assertEquals(eventSet.length, 4);
+  assertEquals(eventSet[0], {
     content: new TextEncoder().encode('A'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[1], {
+  assertEquals(eventSet[1], {
     content: new TextEncoder().encode('B'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[2], {
+  assertEquals(eventSet[2], {
     content: new TextEncoder().encode('C'),
     origin: 1,
     receiver: 0,
   });
-  assert.assertEquals(eventSet[3], {
+  assertEquals(eventSet[3], {
     content: new TextEncoder().encode('C'),
     origin: 1,
     receiver: 0,
@@ -454,5 +455,5 @@ Deno.test('Alo.Ex Unverified SVS Sync interest', async () => {
   }
 
   // Should receive no data
-  assert.assertEquals(eventSet.length, 0);
+  assertEquals(eventSet.length, 0);
 });

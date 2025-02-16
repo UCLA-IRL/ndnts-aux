@@ -1,8 +1,6 @@
-import { assert as assertMod } from '../dep.ts';
+import { assert } from 'assert';
 import { Component, Name } from '@ndn/packet';
 import { name } from './name-lit.ts';
-
-const assert = assertMod.assert as ((expr: unknown, msg?: string) => void);
 
 Deno.test('Name tagged template literal test', () => {
   assert(name``.equals('/'));
