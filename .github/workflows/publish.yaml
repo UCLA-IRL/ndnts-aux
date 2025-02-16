@@ -15,6 +15,7 @@ permissions:
   checks: write
   contents: read
   packages: write
+  id-token: write
 
 jobs:
   publish:
@@ -24,28 +25,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: "pnpm"
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
       - name: Install dependencies
         run: deno install --allow-scripts
-      - name: DNT build
-        run: deno run -A ./build.ts
-      - name: Login
-        run: |
-          pnpm set registry "http://npm.pkg.github.com/"
-          pnpm set "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}"
-      - name: Publish
+      - name: Publish package
         run:
-          cd dist && pnpm publish --no-git-checks
+          deno publish
